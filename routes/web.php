@@ -13,6 +13,7 @@ Route::get('/', function () {
     }
 
 
+
     return view('index', [
         'services' => array_values(config('portfolio.services', [])),
         'featuredProjects' => array_slice(array_values(config('portfolio.projects', [])), 0, 6),
