@@ -1,0 +1,434 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the RegexParser package.
+ *
+ * (c) Younes ENNAJI <younes.ennaji.pro@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace RegexParser\Cli\Command;
+
+use RegexParser\Cli\ConsoleStyle;
+use RegexParser\Cli\Input;
+use RegexParser\Cli\Output;
+use RegexParser\Exception\LexerException;
+use RegexParser\Exception\ParserException;
+use RegexParser\NodeVisitor\ConsoleHighlighterVisitor;
+use RegexParser\ReDoS\ReDoSAnalysis;
+use RegexParser\ReDoS\ReDoSConfirmation;
+use RegexParser\ReDoS\ReDoSConfirmOptions;
+use RegexParser\ReDoS\ReDoSMode;
+use RegexParser\ReDoS\ReDoSSeverity;
+use RegexParser\Runtime\PcreRuntimeInfo;
+use RegexParser\ValidationResult;
+
+final class AnalyzeCommand extends AbstractCommand
+{
+    public function getName(): string
+    {
+        return 'analyze';
+    }
+
+    public function getAliases(): array
+    {
+        return ['analyse'];
+    }
+
+    public function getDescription(): string
+    {
+        return 'Parse, validate, and analyze ReDoS risk';
+    }
+
+    public function run(Input $input, Output $output): int
+    {
+        $parsed = $this->parseArguments($input->args);
+
+        if (null !== $parsed['error']) {
+            $output->write($output->error('Error: '.$parsed['error']."\n"));
+            $output->write("Usage: regex analyze <pattern> [--format=json] [--redos-mode=off|theoretical|confirmed] [--redos-threshold=low|medium|high|critical] [--redos-no-jit]\n");
+
+            return 1;
+        }
+
+        $regex = $this->createRegex($output, $input->regexOptions);
+        if (null === $regex) {
+            return 1;
+        }
+
+        $style = new ConsoleStyle($output, $input->globalOptions->visuals);
+        $runtime = PcreRuntimeInfo::fromIni();
+        $meta = $this->buildRuntimeMeta($input, $output, $runtime);
+
+        if ('json' !== $parsed['format']) {
+            $style->renderBanner('analyze', $meta);
+        }
+
+        try {
+            $pattern = $parsed['pattern'];
+            $format = $parsed['format'];
+            $redosMode = $parsed['redosMode'];
+            $redosThreshold = $parsed['redosThreshold'];
+            $confirmOptions = $parsed['confirmOptions'];
+
+            $ast = $regex->parse($pattern);
+            $validation = $regex->validate($pattern);
+            $analysis = $regex->redos($pattern, $redosThreshold, $redosMode, $confirmOptions);
+            $explain = $regex->explain($pattern);
+
+            $highlightedPattern = $output->isAnsi()
+                ? $ast->accept(new ConsoleHighlighterVisitor())
+                : $pattern;
+
+            if ('json' === $format) {
+                return $this->renderJsonOutput($output, $pattern, $runtime, $validation, $analysis, $explain);
+            }
+
+            return $this->renderConsoleOutput($output, $style, $highlightedPattern, $validation, $analysis, $explain);
+        } catch (LexerException|ParserException $e) {
+            return $this->handleAnalysisError($output, $parsed['format'], $e->getMessage());
+        }
+    }
+
+    /**
+     * @param array<int, string> $args
+     *
+     * @return array{pattern: string, format: string, redosMode: ReDoSMode, redosThreshold: ?ReDoSSeverity, confirmOptions: ?ReDoSConfirmOptions, error: ?string}
+     */
+    private function parseArguments(array $args): array
+    {
+        $pattern = '';
+        $format = 'console';
+        $redosMode = ReDoSMode::THEORETICAL;
+        $redosThreshold = null;
+        $confirmOptions = null;
+        $disableJit = false;
+        $stopParsing = false;
+
+        for ($i = 0; $i < \count($args); $i++) {
+            $arg = $args[$i];
+
+            if (!$stopParsing && '--' === $arg) {
+                $stopParsing = true;
+
+                continue;
+            }
+
+            if (!$stopParsing && '--json' === $arg) {
+                $format = 'json';
+
+                continue;
+            }
+
+            if (!$stopParsing && str_starts_with($arg, '--format=')) {
+                $format = strtolower(substr($arg, \strlen('--format=')));
+
+                continue;
+            }
+
+            if (!$stopParsing && '--format' === $arg) {
+                $value = $args[$i + 1] ?? '';
+                if ('' === $value || str_starts_with($value, '-')) {
+                    return $this->errorResult($format, $redosMode, $redosThreshold, 'Missing value for --format.');
+                }
+                $format = strtolower($value);
+                $i++;
+
+                continue;
+            }
+
+            if (!$stopParsing && str_starts_with($arg, '--redos-mode=')) {
+                $value = strtolower(substr($arg, \strlen('--redos-mode=')));
+                $mode = ReDoSMode::tryFrom($value);
+                if (null === $mode) {
+                    return $this->errorResult($format, $redosMode, $redosThreshold, 'Invalid value for --redos-mode.');
+                }
+                $redosMode = $mode;
+
+                continue;
+            }
+
+            if (!$stopParsing && '--redos-mode' === $arg) {
+                $value = $args[$i + 1] ?? '';
+                if ('' === $value || str_starts_with($value, '-')) {
+                    return $this->errorResult($format, $redosMode, $redosThreshold, 'Missing value for --redos-mode.');
+                }
+                $mode = ReDoSMode::tryFrom(strtolower($value));
+                if (null === $mode) {
+                    return $this->errorResult($format, $redosMode, $redosThreshold, 'Invalid value for --redos-mode.');
+                }
+                $redosMode = $mode;
+                $i++;
+
+                continue;
+            }
+
+            if (!$stopParsing && str_starts_with($arg, '--redos-threshold=')) {
+                $value = strtolower(substr($arg, \strlen('--redos-threshold=')));
+                $threshold = ReDoSSeverity::tryFrom($value);
+                if (null === $threshold) {
+                    return $this->errorResult($format, $redosMode, $redosThreshold, 'Invalid value for --redos-threshold.');
+                }
+                $redosThreshold = $threshold;
+
+                continue;
+            }
+
+            if (!$stopParsing && '--redos-threshold' === $arg) {
+                $value = $args[$i + 1] ?? '';
+                if ('' === $value || str_starts_with($value, '-')) {
+                    return $this->errorResult($format, $redosMode, $redosThreshold, 'Missing value for --redos-threshold.');
+                }
+                $threshold = ReDoSSeverity::tryFrom(strtolower($value));
+                if (null === $threshold) {
+                    return $this->errorResult($format, $redosMode, $redosThreshold, 'Invalid value for --redos-threshold.');
+                }
+                $redosThreshold = $threshold;
+                $i++;
+
+                continue;
+            }
+
+            if (!$stopParsing && '--redos-no-jit' === $arg) {
+                $disableJit = true;
+
+                continue;
+            }
+
+            if (!$stopParsing && str_starts_with($arg, '-')) {
+                return $this->errorResult($format, $redosMode, $redosThreshold, 'Unknown option: '.$arg);
+            }
+
+            if ('' === $pattern) {
+                $pattern = $arg;
+
+                continue;
+            }
+        }
+
+        if ('' === $pattern) {
+            return $this->errorResult($format, $redosMode, $redosThreshold, 'Missing pattern.');
+        }
+
+        if (!\in_array($format, ['console', 'json'], true)) {
+            return $this->errorResult($format, $redosMode, $redosThreshold, 'Invalid value for --format.');
+        }
+
+        if ($disableJit) {
+            $confirmOptions = new ReDoSConfirmOptions(disableJit: true);
+        }
+
+        return [
+            'pattern' => $pattern,
+            'format' => $format,
+            'redosMode' => $redosMode,
+            'redosThreshold' => $redosThreshold,
+            'confirmOptions' => $confirmOptions,
+            'error' => null,
+        ];
+    }
+
+    /**
+     * @return array{pattern: string, format: string, redosMode: ReDoSMode, redosThreshold: ?ReDoSSeverity, confirmOptions: ?ReDoSConfirmOptions, error: string}
+     */
+    private function errorResult(string $format, ReDoSMode $redosMode, ?ReDoSSeverity $redosThreshold, string $error): array
+    {
+        return [
+            'pattern' => '',
+            'format' => $format,
+            'redosMode' => $redosMode,
+            'redosThreshold' => $redosThreshold,
+            'confirmOptions' => null,
+            'error' => $error,
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function buildRuntimeMeta(Input $input, Output $output, PcreRuntimeInfo $runtime): array
+    {
+        $meta = [];
+
+        if (null !== $input->globalOptions->phpVersion) {
+            $meta['Target PHP'] = $output->warning('PHP '.$input->globalOptions->phpVersion);
+        }
+
+        $meta['PCRE'] = $output->warning($runtime->version);
+        $meta['PCRE JIT'] = $output->warning($runtime->jitSetting ?? 'unknown');
+        $meta['Backtrack'] = $output->warning((string) ($runtime->backtrackLimit ?? 'unknown'));
+        $meta['Recursion'] = $output->warning((string) ($runtime->recursionLimit ?? 'unknown'));
+
+        return $meta;
+    }
+
+    private function renderJsonOutput(Output $output, string $pattern, PcreRuntimeInfo $runtime, ValidationResult $validation, ReDoSAnalysis $analysis, string $explain): int
+    {
+        $payload = [
+            'pattern' => $pattern,
+            'runtime' => $runtime,
+            'parse' => ['ok' => true],
+            'validation' => [
+                'valid' => $validation->isValid,
+                'error' => $validation->error,
+                'complexity_score' => $validation->complexityScore,
+                'category' => $validation->category?->value,
+                'offset' => $validation->offset,
+                'hint' => $validation->hint,
+                'error_code' => $validation->errorCode,
+            ],
+            'redos' => $analysis,
+            'explain' => $explain,
+        ];
+
+        $json = json_encode($payload, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES);
+        if (false === $json) {
+            $output->write($output->error("Error: Failed to encode JSON\n"));
+
+            return 1;
+        }
+
+        $output->write($json."\n");
+
+        return 0;
+    }
+
+    private function renderConsoleOutput(Output $output, ConsoleStyle $style, string $highlightedPattern, ValidationResult $validation, ReDoSAnalysis $analysis, string $explain): int
+    {
+        $steps = 4;
+
+        $style->renderSection('Parsing pattern', 1, $steps);
+        $style->renderPattern($highlightedPattern);
+        $style->renderKeyValueBlock([
+            'Parse' => $output->success('OK'),
+        ]);
+
+        if ($style->visualsEnabled()) {
+            $output->write("\n");
+        }
+
+        $style->renderSection('Validation', 2, $steps);
+        $validationStatus = $validation->isValid ? $output->success('OK') : $output->error('INVALID');
+        $style->renderKeyValueBlock([
+            'Status' => $validationStatus,
+        ]);
+
+        if (!$validation->isValid && $validation->error) {
+            $output->write('  '.$output->error($validation->error)."\n");
+        }
+
+        if ($style->visualsEnabled()) {
+            $output->write("\n");
+        }
+
+        $style->renderSection('ReDoS analysis', 3, $steps);
+        $severityOutput = $this->formatRedosSeverity($analysis, $output);
+        $status = $this->getRedosStatus($analysis);
+
+        $style->renderKeyValueBlock([
+            'Status' => $status,
+            'Severity' => $severityOutput.' (score '.$analysis->score.')',
+            'Mode' => strtoupper($analysis->mode->value),
+            'Confidence' => strtoupper($analysis->confidenceLevel()->value),
+        ]);
+
+        if ($analysis->error) {
+            $output->write('  '.$output->error('ReDoS error: '.$analysis->error)."\n");
+        }
+
+        $hotspot = $analysis->getPrimaryHotspot();
+        if (null !== $hotspot) {
+            $output->write('  Hotspot:   '.$hotspot->start.'-'.$hotspot->end."\n");
+        }
+
+        if (ReDoSMode::CONFIRMED === $analysis->mode && null !== $analysis->confirmation) {
+            $this->renderConfirmationSection($output, $style, $analysis->confirmation);
+        }
+
+        if ($style->visualsEnabled()) {
+            $output->write("\n");
+        }
+
+        $style->renderSection('Explanation', 4, $steps);
+        $output->write($explain."\n");
+
+        return 0;
+    }
+
+    private function renderConfirmationSection(Output $output, ConsoleStyle $style, ReDoSConfirmation $confirmation): void
+    {
+        $output->write("\n");
+        $style->renderSection('Confirmation', 3, 4);
+
+        $sampleParts = [];
+        foreach ($confirmation->samples as $sample) {
+            $sampleParts[] = \sprintf('len=%d avg=%.2fms', $sample->inputLength, $sample->durationMs);
+        }
+
+        $output->write('  Status:    '.($confirmation->confirmed ? 'CONFIRMED' : 'NOT CONFIRMED')."\n");
+
+        if (null !== $confirmation->evidence) {
+            $output->write('  Evidence:  '.$confirmation->evidence."\n");
+        }
+
+        if ([] !== $sampleParts) {
+            $output->write('  Samples:   '.implode(', ', $sampleParts)."\n");
+        }
+
+        $output->write('  JIT:       '.($confirmation->jitSetting ?? 'unknown')."\n");
+        $output->write('  Backtrack: '.($confirmation->backtrackLimit ?? 'unknown')."\n");
+        $output->write('  Recursion: '.($confirmation->recursionLimit ?? 'unknown')."\n");
+
+        if ($confirmation->timedOut) {
+            $output->write("  Note:      confirmation timed out within limits\n");
+        }
+
+        if (null !== $confirmation->note) {
+            $output->write('  Note:      '.$confirmation->note."\n");
+        }
+    }
+
+    private function getRedosStatus(ReDoSAnalysis $analysis): string
+    {
+        return match (true) {
+            ReDoSMode::OFF === $analysis->mode => 'ReDoS analysis disabled',
+            \in_array($analysis->severity, [ReDoSSeverity::SAFE, ReDoSSeverity::LOW], true) => 'No significant ReDoS risk detected',
+            $analysis->isConfirmed() => 'Confirmed ReDoS risk',
+            default => 'Potential ReDoS risk (theoretical)',
+        };
+    }
+
+    private function handleAnalysisError(Output $output, string $format, string $errorMessage): int
+    {
+        if ('json' === $format) {
+            $json = json_encode(['error' => $errorMessage, 'stage' => 'analyze'], \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES);
+            $output->write(($json ?: '{"error":"Analyze failed"}')."\n");
+
+            return 1;
+        }
+
+        $output->write('  '.$output->badge('FAIL', Output::WHITE, Output::BG_RED).' '.$output->error('Analyze failed: '.$errorMessage)."\n");
+
+        return 1;
+    }
+
+    private function formatRedosSeverity(ReDoSAnalysis $analysis, Output $output): string
+    {
+        $label = strtoupper($analysis->severity->value);
+
+        $color = match ($analysis->severity) {
+            ReDoSSeverity::SAFE, ReDoSSeverity::LOW => $output->success($label),
+            ReDoSSeverity::MEDIUM => $output->warning($label),
+            ReDoSSeverity::HIGH, ReDoSSeverity::CRITICAL => $analysis->isConfirmed()
+                ? $output->error($label)
+                : $output->warning($label),
+            ReDoSSeverity::UNKNOWN => $output->info($label),
+        };
+
+        return $color;
+    }
+}

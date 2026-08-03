@@ -1,0 +1,101 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the RegexParser package.
+ *
+ * (c) Younes ENNAJI <younes.ennaji.pro@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+if (version_compare('8.2.0', \PHP_VERSION, '>')) {
+    fwrite(\STDERR, \sprintf('This version of RegexParser requires PHP >= 8.2.0.'.\PHP_EOL.'You are using PHP %s (%s).'.\PHP_EOL, \PHP_VERSION, \PHP_BINARY));
+
+    exit(1);
+}
+
+gc_disable();
+
+$autoloadPath = null;
+$autoloadPaths = [
+    __DIR__.'/../vendor/autoload.php',
+    __DIR__.'/../../../../vendor/autoload.php',
+    __DIR__.'/vendor/autoload.php',
+];
+
+foreach ($autoloadPaths as $path) {
+    if (file_exists($path)) {
+        $autoloadPath = $path;
+
+        break;
+    }
+}
+
+if (null === $autoloadPath) {
+    throw new \RuntimeException('Unable to locate autoload.php file.');
+}
+
+require_once $autoloadPath;
+
+use RegexParser\Cli\Application;
+use RegexParser\Cli\Command\AnalyzeCommand;
+use RegexParser\Cli\Command\ClearCacheCommand;
+use RegexParser\Cli\Command\CompareCommand;
+use RegexParser\Cli\Command\DebugCommand;
+use RegexParser\Cli\Command\DiagramCommand;
+use RegexParser\Cli\Command\ExplainCommand;
+use RegexParser\Cli\Command\GraphCommand;
+use RegexParser\Cli\Command\HelpCommand;
+use RegexParser\Cli\Command\HighlightCommand;
+use RegexParser\Cli\Command\ParseCommand;
+use RegexParser\Cli\Command\RedosCommand;
+use RegexParser\Cli\Command\SelfUpdateCommand;
+use RegexParser\Cli\Command\TranspileCommand;
+use RegexParser\Cli\Command\ValidateCommand;
+use RegexParser\Cli\Command\VersionCommand;
+use RegexParser\Cli\GlobalOptionsParser;
+use RegexParser\Cli\Output;
+use RegexParser\Cli\SelfUpdate\SelfUpdater;
+use RegexParser\Lint\Command\LintArgumentParser;
+use RegexParser\Lint\Command\LintCommand;
+use RegexParser\Lint\Command\LintConfigLoader;
+use RegexParser\Lint\Command\LintDefaultsBuilder;
+use RegexParser\Lint\Command\LintExtractorFactory;
+use RegexParser\Lint\Command\LintOutputRenderer;
+
+$globalOptionsParser = new GlobalOptionsParser();
+$progressBarFull = "\xE2\x96\x93";
+$progressBarEmpty = "\xE2\x96\x91";
+$output = new Output(false, false, $progressBarFull, $progressBarEmpty);
+$helpCommand = new HelpCommand();
+
+$app = new Application($globalOptionsParser, $output, $helpCommand);
+$app->register($helpCommand);
+$app->register(new VersionCommand());
+$app->register(new SelfUpdateCommand(new SelfUpdater()));
+$app->register(new ParseCommand());
+$app->register(new ExplainCommand());
+$app->register(new AnalyzeCommand());
+$app->register(new DebugCommand());
+$app->register(new CompareCommand());
+$app->register(new RedosCommand());
+$app->register(new DiagramCommand());
+$app->register(new GraphCommand());
+$app->register(new HighlightCommand());
+$app->register(new TranspileCommand());
+$app->register(new ValidateCommand());
+$app->register(new ClearCacheCommand());
+$app->register(new LintCommand(
+    $helpCommand,
+    new LintConfigLoader(),
+    new LintDefaultsBuilder(),
+    new LintArgumentParser(),
+    new LintExtractorFactory(),
+    new LintOutputRenderer(),
+));
+
+exit($app->run($argv));

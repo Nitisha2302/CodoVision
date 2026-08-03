@@ -1,0 +1,88 @@
+{
+    "name": "yoeunes/regex-parser",
+    "description": "A powerful PCRE regex parser with lexer, AST builder, validation, ReDoS analysis, and syntax highlighting. Zero dependencies, blazing fast, and production-ready.",
+    "keywords": ["regex", "parser", "pcre", "lexer", "ast", "validation", "redos", "security", "syntax-highlighting", "php", "cli"],
+    "homepage": "https://github.com/yoeunes/regex-parser",
+    "type": "library",
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/yoeunes/regex-parser/issues",
+        "source": "https://github.com/yoeunes/regex-parser",
+        "docs": "https://github.com/yoeunes/regex-parser#readme"
+    },
+    "funding": [
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/yoeunes"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Younes ENNAJI",
+            "email": "younes.ennaji.pro@gmail.com",
+            "homepage": "https://www.linkedin.com/in/yoeunes/",
+            "role": "Developer"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "RegexParser\\": "src/"
+        },
+        "files": [
+            "src/Automata/LegacyAliases.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "RegexParser\\Tests\\": "tests/"
+        }
+    },
+    "bin": [
+        "bin/regex"
+    ],
+    "scripts": {
+        "phpunit": "tools/phpunit/vendor/bin/phpunit",
+        "phpstan": "tools/phpstan/vendor/bin/phpstan analyse",
+        "rector": "tools/rector/vendor/bin/rector process",
+        "phpcs": "tools/php-cs-fixer/vendor/bin/php-cs-fixer fix",
+        "phplint": "tools/phplint/vendor/bin/phplint",
+        "bench": "tools/phpbench/vendor/bin/phpbench run",
+        "infection": "tools/infection/vendor/bin/infection",
+        "lint": [
+            "@rector",
+            "@phpcs",
+            "@phplint",
+            "@phpunit",
+            "@phpstan"
+        ]
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "1.x-dev"
+        },
+        "phpstan": {
+            "includes": [
+                "extension.neon"
+            ]
+        },
+        "ide": {
+            "regex.dist.json": "./regex.schema.json"
+        }
+    },
+    "suggest": {
+        "psr/cache": "To share AST cache via PSR-6 pools.",
+        "psr/simple-cache": "To share AST cache via PSR-16 caches.",
+        "phpstan/phpstan": "To run static analysis and detect invalid regex patterns.",
+        "phpstan/extension-installer": "To automatically enable the PHPStan rule for regex validation."
+    }
+}

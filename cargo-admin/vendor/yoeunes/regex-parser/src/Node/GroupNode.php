@@ -1,0 +1,39 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the RegexParser package.
+ *
+ * (c) Younes ENNAJI <younes.ennaji.pro@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace RegexParser\Node;
+
+use RegexParser\NodeVisitor\NodeVisitorInterface;
+
+/**
+ * Represents a grouping construct in a regular expression.
+ */
+final readonly class GroupNode extends AbstractNode
+{
+    public function __construct(
+        public NodeInterface $child,
+        public GroupType $type,
+        public ?string $name = null,
+        public ?string $flags = null,
+        int $startPosition = 0,
+        int $endPosition = 0,
+        public bool $usePythonSyntax = false,
+    ) {
+        parent::__construct($startPosition, $endPosition);
+    }
+
+    public function accept(NodeVisitorInterface $visitor)
+    {
+        return $visitor->visitGroup($this);
+    }
+}

@@ -1,0 +1,47 @@
+<div class="container-xxl flex-grow-1 container-p-y">
+    <form wire:submit="update">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-1">{{ __('admin.edit_platform') }}</h5><small class="text-body-secondary">{{ __('admin.edit_platform_hint') }}</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <label class="form-label" for="code">{{ __('admin.platform_code') }}</label>
+                            <input id="code" type="text" wire:model.blur="code"
+                                class="form-control @error('code') is-invalid @enderror" placeholder="taobao">
+                            <small class="text-body-secondary">{{ __('admin.platform_code_hint') }}</small>
+                            @error('code')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        @include('livewire.admin.platform.partials.translation-fields', [
+                            'editing' => true,
+                        ])
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">{{ __('admin.publish') }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check form-switch mb-4"><input class="form-check-input" type="checkbox"
+                                id="is_available" wire:model="is_available"><label class="form-check-label"
+                                for="is_available">{{ __('admin.active') }}</label></div>
+                        <a href="{{ route('admin.platforms.commission-slabs.index', $platform) }}" class="btn btn-label-primary w-100 mb-2">
+                            <i class="icon-base ti tabler-percentage me-1"></i> {{ __('admin.commission_slabs') }}
+                        </a>
+                        <button type="submit" class="btn btn-primary w-100"><i
+                                class="icon-base ti tabler-device-floppy"></i> {{ __('admin.update_platform') }}</button>
+                        <a href="{{ route('admin.platforms.index') }}"
+                            class="btn btn-label-secondary w-100 mt-2">{{ __('admin.cancel') }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+@include('livewire.admin.platform.partials.tab-script')

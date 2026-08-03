@@ -1,0 +1,59 @@
+parametersSchema:
+    regexParser: structure([
+        # Whether to ignore regex parsing errors (e.g., missing delimiters)
+        ignoreParseErrors: bool(),
+        # Enable/disable ReDoS risk detection
+        reportRedos: bool(),
+        # ReDoS reporting mode: 'off', 'theoretical', 'confirmed'
+        redosMode: string(),
+        # Minimum severity level to report: 'low', 'medium', 'high', 'critical'
+        redosThreshold: string(),
+        # Enable/disable regex optimization suggestions
+        suggestOptimizations: bool(),
+        # Configuration for specific optimizations
+        optimizationConfig: structure([
+            digits: bool(),
+            word: bool(),
+            ranges: bool(),
+            canonicalizeCharClasses: bool()
+        ])
+    ])
+
+parameters:
+    regexParser:
+        # Ignore parsing errors like missing delimiters (common in dynamic regex)
+        ignoreParseErrors: true
+
+        # Enable comprehensive ReDoS risk detection
+        reportRedos: true
+
+        # Report only critical ReDoS issues by default (conservative)
+        # Options: 'low' (most sensitive), 'medium', 'high', 'critical' (least sensitive)
+        redosThreshold: 'critical'
+
+        # ReDoS reporting mode (theoretical by default)
+        redosMode: 'theoretical'
+
+        # Enable regex optimization suggestions
+        suggestOptimizations: false
+
+        # Configuration for specific optimizations (both default to true for BC)
+        optimizationConfig:
+            digits: true
+            word: true
+            ranges: true
+            canonicalizeCharClasses: true
+
+services:
+    # Main regex validation rule for PHPStan
+    -
+        class: RegexParser\Bridge\PHPStan\RegexParserRule
+        arguments:
+            ignoreParseErrors: %regexParser.ignoreParseErrors%
+            reportRedos: %regexParser.reportRedos%
+            redosThreshold: %regexParser.redosThreshold%
+            redosMode: %regexParser.redosMode%
+            suggestOptimizations: %regexParser.suggestOptimizations%
+            optimizationConfig: %regexParser.optimizationConfig%
+        tags:
+            - phpstan.rules.rule

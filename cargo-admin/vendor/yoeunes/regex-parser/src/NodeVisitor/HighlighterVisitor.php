@@ -1,0 +1,442 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the RegexParser package.
+ *
+ * (c) Younes ENNAJI <younes.ennaji.pro@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace RegexParser\NodeVisitor;
+
+use RegexParser\Node\AlternationNode;
+use RegexParser\Node\AnchorNode;
+use RegexParser\Node\AssertionNode;
+use RegexParser\Node\BackrefNode;
+use RegexParser\Node\CalloutNode;
+use RegexParser\Node\CharClassNode;
+use RegexParser\Node\CharLiteralNode;
+use RegexParser\Node\CharTypeNode;
+use RegexParser\Node\ClassOperationNode;
+use RegexParser\Node\ClassOperationType;
+use RegexParser\Node\CommentNode;
+use RegexParser\Node\ConditionalNode;
+use RegexParser\Node\ControlCharNode;
+use RegexParser\Node\DefineNode;
+use RegexParser\Node\DotNode;
+use RegexParser\Node\GroupNode;
+use RegexParser\Node\GroupType;
+use RegexParser\Node\KeepNode;
+use RegexParser\Node\LimitMatchNode;
+use RegexParser\Node\LiteralNode;
+use RegexParser\Node\PcreVerbNode;
+use RegexParser\Node\PosixClassNode;
+use RegexParser\Node\QuantifierNode;
+use RegexParser\Node\QuantifierType;
+use RegexParser\Node\RangeNode;
+use RegexParser\Node\RegexNode;
+use RegexParser\Node\ScriptRunNode;
+use RegexParser\Node\SequenceNode;
+use RegexParser\Node\SubroutineNode;
+use RegexParser\Node\UnicodeNode;
+use RegexParser\Node\UnicodePropNode;
+use RegexParser\Node\VersionConditionNode;
+
+/**
+ * Base visitor for highlighting regex syntax.
+ *
+ * @extends AbstractNodeVisitor<string>
+ */
+abstract class HighlighterVisitor extends AbstractNodeVisitor
+{
+    #[\Override]
+    public function visitRegex(RegexNode $node): string
+    {
+        return $node->pattern->accept($this);
+    }
+
+    #[\Override]
+    public function visitAlternation(AlternationNode $node): string
+    {
+        $parts = [];
+        foreach ($node->alternatives as $alt) {
+            $parts[] = $alt->accept($this);
+        }
+
+        return implode($this->wrap('|', 'meta'), $parts);
+    }
+
+    #[\Override]
+    public function visitSequence(SequenceNode $node): string
+    {
+        $parts = [];
+        foreach ($node->children as $child) {
+            $parts[] = $child->accept($this);
+        }
+
+        return implode('', $parts);
+    }
+
+    #[\Override]
+    public function visitGroup(GroupNode $node): string
+    {
+        $child = $node->child->accept($this);
+        $open = $this->wrap('(', 'group');
+        $close = $this->wrap(')', 'group');
+        $flags = $node->flags ?? '';
+
+        return match ($node->type) {
+            GroupType::T_GROUP_CAPTURING => $open.$child.$close,
+            GroupType::T_GROUP_NON_CAPTURING => $open.$this->wrap('?:', 'group').$child.$close,
+            GroupType::T_GROUP_NAMED => $open
+                .$this->wrap('?<', 'group')
+                .$this->wrapReference($node->name ?? '')
+                .$this->wrap('>', 'group')
+                .$child
+                .$close,
+            GroupType::T_GROUP_LOOKAHEAD_POSITIVE => $open.$this->wrap('?=', 'group').$child.$close,
+            GroupType::T_GROUP_LOOKAHEAD_NEGATIVE => $open.$this->wrap('?!', 'group').$child.$close,
+            GroupType::T_GROUP_LOOKBEHIND_POSITIVE => $open.$this->wrap('?<=', 'group').$child.$close,
+            GroupType::T_GROUP_LOOKBEHIND_NEGATIVE => $open.$this->wrap('?<!', 'group').$child.$close,
+            GroupType::T_GROUP_ATOMIC => $open.$this->wrap('?>', 'group').$child.$close,
+            GroupType::T_GROUP_BRANCH_RESET => $open.$this->wrap('?|', 'group').$child.$close,
+            GroupType::T_GROUP_INLINE_FLAGS => $this->renderInlineFlagsGroup($flags, $child, $open, $close),
+        };
+    }
+
+    #[\Override]
+    public function visitQuantifier(QuantifierNode $node): string
+    {
+        $inner = $node->node->accept($this);
+        $quant = $node->quantifier;
+        if (QuantifierType::T_LAZY === $node->type) {
+            $quant .= '?';
+        } elseif (QuantifierType::T_POSSESSIVE === $node->type) {
+            $quant .= '+';
+        }
+
+        return $inner.$this->wrap($this->escape($quant), 'quantifier');
+    }
+
+    #[\Override]
+    public function visitLiteral(LiteralNode $node): string
+    {
+        if ('' === $node->value) {
+            return '';
+        }
+
+        return $this->wrap($this->escape($node->value), 'literal');
+    }
+
+    #[\Override]
+    public function visitCharLiteral(CharLiteralNode $node): string
+    {
+        if ('' === $node->originalRepresentation) {
+            return '';
+        }
+
+        return $this->wrap($this->escape($node->originalRepresentation), 'escape');
+    }
+
+    #[\Override]
+    public function visitCharType(CharTypeNode $node): string
+    {
+        return $this->wrap($this->escape('\\'.$node->value), 'escape');
+    }
+
+    #[\Override]
+    public function visitDot(DotNode $node): string
+    {
+        return $this->wrap('.', 'meta');
+    }
+
+    #[\Override]
+    public function visitAnchor(AnchorNode $node): string
+    {
+        return $this->wrap($this->escape($node->value), 'anchor');
+    }
+
+    #[\Override]
+    public function visitAssertion(AssertionNode $node): string
+    {
+        return $this->wrap($this->escape('\\'.$node->value), 'anchor');
+    }
+
+    #[\Override]
+    public function visitKeep(KeepNode $node): string
+    {
+        return $this->wrap($this->escape('\\K'), 'escape');
+    }
+
+    #[\Override]
+    public function visitCharClass(CharClassNode $node): string
+    {
+        $parts = $node->expression instanceof AlternationNode
+            ? $node->expression->alternatives
+            : [$node->expression];
+        $inner = '';
+        foreach ($parts as $part) {
+            $inner .= $part->accept($this);
+        }
+        $neg = $node->isNegated ? $this->wrap('^', 'meta') : '';
+
+        return $this->wrap('[', 'meta').$neg.$inner.$this->wrap(']', 'meta');
+    }
+
+    #[\Override]
+    public function visitRange(RangeNode $node): string
+    {
+        $start = $node->start->accept($this);
+        $end = $node->end->accept($this);
+
+        return $start.$this->wrap('-', 'meta').$end;
+    }
+
+    #[\Override]
+    public function visitBackref(BackrefNode $node): string
+    {
+        $reference = $this->formatBackref($node);
+        if ('' === $reference) {
+            return '';
+        }
+
+        return $this->wrap($this->escape($reference), 'backref');
+    }
+
+    #[\Override]
+    public function visitClassOperation(ClassOperationNode $node): string
+    {
+        $left = $node->left->accept($this);
+        $right = $node->right->accept($this);
+        $op = ClassOperationType::INTERSECTION === $node->type ? '&&' : '--';
+
+        return $left.$this->wrap($this->escape($op), 'meta').$right;
+    }
+
+    #[\Override]
+    public function visitControlChar(ControlCharNode $node): string
+    {
+        return $this->wrap($this->escape('\\c'.$node->char), 'escape');
+    }
+
+    #[\Override]
+    public function visitScriptRun(ScriptRunNode $node): string
+    {
+        return $this->wrap('(*', 'group')
+            .$this->wrap('script_run', 'keyword')
+            .$this->wrap(':', 'meta')
+            .$this->wrapReference($node->script)
+            .$this->wrap(')', 'group');
+    }
+
+    #[\Override]
+    public function visitVersionCondition(VersionConditionNode $node): string
+    {
+        return $this->wrap('VERSION', 'keyword')
+            .$this->wrap($this->escape($node->operator), 'meta')
+            .$this->wrap($this->escape($node->version), 'number');
+    }
+
+    #[\Override]
+    public function visitUnicode(UnicodeNode $node): string
+    {
+        // For non-printable characters (control chars and extended ASCII),
+        // convert back to hex representation to avoid display issues
+        if (1 === \strlen($node->code)) {
+            $charCode = \ord($node->code);
+            // Control characters (0x00-0x1F, 0x7F) and extended ASCII (0x80-0xFF)
+            if ($charCode <= 0x1F
+                || 0x7F === $charCode
+                || $charCode >= 0x80) {
+                return $this->wrap(
+                    $this->escape('\\x'.strtoupper(str_pad(dechex($charCode), 2, '0', \STR_PAD_LEFT))),
+                    'escape',
+                );
+            }
+        }
+
+        // For regular Unicode escape sequences, use the original format
+        return $this->wrap($this->escape('\\x'.$node->code), 'escape');
+    }
+
+    #[\Override]
+    public function visitUnicodeProp(UnicodePropNode $node): string
+    {
+        $inner = $node->hasBraces ? trim($node->prop, '{}') : $node->prop;
+        $isNegated = str_starts_with($inner, '^');
+        $inner = ltrim($inner, '^');
+        $prefix = $isNegated ? 'P' : 'p';
+        $display = '{'.$inner.'}';
+
+        return $this->wrap($this->escape('\\'.$prefix.$display), 'escape');
+    }
+
+    #[\Override]
+    public function visitPosixClass(PosixClassNode $node): string
+    {
+        return $this->wrap($this->escape('[:'.$node->class.':]'), 'escape');
+    }
+
+    #[\Override]
+    public function visitComment(CommentNode $node): string
+    {
+        return $this->wrap('(?#', 'meta')
+            .$this->wrap($this->escape($node->comment), 'comment')
+            .$this->wrap(')', 'meta');
+    }
+
+    #[\Override]
+    public function visitConditional(ConditionalNode $node): string
+    {
+        if ($node->condition instanceof BackrefNode) {
+            $condition = $this->wrap($this->escape($node->condition->ref), 'backref');
+        } else {
+            $condition = $node->condition->accept($this);
+        }
+
+        $yes = $node->yes->accept($this);
+        $no = $node->no->accept($this);
+        $noPart = '' !== $no ? $this->wrap('|', 'meta').$no : '';
+
+        return $this->wrap('(?(', 'group')
+            .$condition
+            .$this->wrap(')', 'group')
+            .$yes
+            .$noPart
+            .$this->wrap(')', 'group');
+    }
+
+    #[\Override]
+    public function visitSubroutine(SubroutineNode $node): string
+    {
+        return match ($node->syntax) {
+            '&' => $this->wrap('(?', 'group')
+                .$this->wrap('&', 'keyword')
+                .$this->wrapReference($node->reference)
+                .$this->wrap(')', 'group'),
+            'P>' => $this->wrap('(?', 'group')
+                .$this->wrap('P>', 'keyword')
+                .$this->wrapReference($node->reference)
+                .$this->wrap(')', 'group'),
+            'g' => $this->wrap($this->escape('\\g<'), 'escape')
+                .$this->wrapReference($node->reference)
+                .$this->wrap($this->escape('>'), 'escape'),
+            default => $this->wrap('(?', 'group')
+                .$this->wrapReference($node->reference)
+                .$this->wrap(')', 'group'),
+        };
+    }
+
+    #[\Override]
+    public function visitPcreVerb(PcreVerbNode $node): string
+    {
+        if (str_contains($node->verb, ':')) {
+            [$verb, $arg] = explode(':', $node->verb, 2);
+
+            return $this->wrap('(*', 'group')
+                .$this->wrap($this->escape($verb), 'keyword')
+                .$this->wrap(':', 'meta')
+                .$this->wrapReference($arg)
+                .$this->wrap(')', 'group');
+        }
+
+        return $this->wrap('(*', 'group')
+            .$this->wrap($this->escape($node->verb), 'keyword')
+            .$this->wrap(')', 'group');
+    }
+
+    #[\Override]
+    public function visitDefine(DefineNode $node): string
+    {
+        $inner = $node->content->accept($this);
+
+        return $this->wrap('(?(', 'group')
+            .$this->wrap('DEFINE', 'keyword')
+            .$this->wrap(')', 'group')
+            .$inner
+            .$this->wrap(')', 'group');
+    }
+
+    #[\Override]
+    public function visitLimitMatch(LimitMatchNode $node): string
+    {
+        return $this->wrap('(*', 'group')
+            .$this->wrap('LIMIT_MATCH', 'keyword')
+            .$this->wrap('=', 'meta')
+            .$this->wrap((string) $node->limit, 'number')
+            .$this->wrap(')', 'group');
+    }
+
+    #[\Override]
+    public function visitCallout(CalloutNode $node): string
+    {
+        $content = '';
+        if (null !== $node->identifier) {
+            if ($node->isStringIdentifier) {
+                $content = $this->wrap('"', 'meta')
+                    .$this->wrap($this->escape((string) $node->identifier), 'identifier')
+                    .$this->wrap('"', 'meta');
+            } elseif (\is_int($node->identifier)) {
+                $content = $this->wrap((string) $node->identifier, 'number');
+            } else {
+                $content = $this->wrap($this->escape((string) $node->identifier), 'identifier');
+            }
+        }
+
+        return $this->wrap('(?', 'group')
+            .$this->wrap('C', 'keyword')
+            .$content
+            .$this->wrap(')', 'group');
+    }
+
+    abstract protected function wrap(string $content, string $type): string;
+
+    abstract protected function escape(string $string): string;
+
+    private function renderInlineFlagsGroup(string $flags, string $child, string $open, string $close): string
+    {
+        $flagToken = '' !== $flags ? $this->wrap($this->escape($flags), 'flag') : '';
+
+        if ('' === $child) {
+            return $open.$this->wrap('?', 'group').$flagToken.$close;
+        }
+
+        return $open
+            .$this->wrap('?', 'group')
+            .$flagToken
+            .$this->wrap(':', 'group')
+            .$child
+            .$close;
+    }
+
+    private function formatBackref(BackrefNode $node): string
+    {
+        $ref = $node->ref;
+        if ('' === $ref) {
+            return '';
+        }
+
+        if (ctype_digit($ref)) {
+            return '\\'.$ref;
+        }
+
+        return $ref;
+    }
+
+    private function wrapReference(string $reference): string
+    {
+        if ('' === $reference) {
+            return '';
+        }
+
+        if (1 === preg_match('/^[+-]?\d+$/', $reference)) {
+            return $this->wrap($this->escape($reference), 'number');
+        }
+
+        return $this->wrap($this->escape($reference), 'identifier');
+    }
+}

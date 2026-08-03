@@ -1,0 +1,135 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the RegexParser package.
+ *
+ * (c) Younes ENNAJI <younes.ennaji.pro@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace RegexParser\Cli\Command;
+
+use RegexParser\Cli\ConsoleStyle;
+use RegexParser\Cli\Input;
+use RegexParser\Cli\Output;
+use RegexParser\Exception\LexerException;
+use RegexParser\Exception\ParserException;
+use RegexParser\NodeVisitor\ConsoleHighlighterVisitor;
+use RegexParser\Regex;
+use RegexParser\ValidationResult;
+
+final class ValidateCommand extends AbstractCommand
+{
+    public function getName(): string
+    {
+        return 'validate';
+    }
+
+    public function getAliases(): array
+    {
+        return [];
+    }
+
+    public function getDescription(): string
+    {
+        return 'Validate a regex pattern';
+    }
+
+    public function run(Input $input, Output $output): int
+    {
+        $pattern = $input->args[0] ?? '';
+
+        if ('' === $pattern) {
+            return $this->handleMissingPattern($output);
+        }
+
+        $regex = $this->createRegex($output, $input->regexOptions);
+        if (null === $regex) {
+            return 1;
+        }
+
+        $style = new ConsoleStyle($output, $input->globalOptions->visuals);
+        $meta = $this->buildRuntimeMeta($input, $output);
+        $style->renderBanner('validate', $meta);
+
+        $validation = $regex->validate($pattern);
+        $highlightedPattern = $this->highlightPattern($regex, $pattern, $output, $validation);
+
+        $this->renderValidationSection($style, $highlightedPattern);
+
+        if ($validation->isValid) {
+            return $this->renderSuccessResult($style, $output);
+        }
+
+        return $this->renderErrorResult($style, $output, $validation);
+    }
+
+    private function handleMissingPattern(Output $output): int
+    {
+        $output->write($output->error("Error: Missing pattern\n"));
+        $output->write("Usage: regex validate <pattern>\n");
+
+        return 1;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function buildRuntimeMeta(Input $input, Output $output): array
+    {
+        $meta = [];
+
+        if (null !== $input->globalOptions->phpVersion) {
+            $meta['Target PHP'] = $output->warning('PHP '.$input->globalOptions->phpVersion);
+        }
+
+        return $meta;
+    }
+
+    private function highlightPattern(Regex $regex, string $pattern, Output $output, ValidationResult $validation): string
+    {
+        if (!$output->isAnsi() || !$validation->isValid) {
+            return $pattern;
+        }
+
+        try {
+            $ast = $regex->parse($pattern);
+
+            return $ast->accept(new ConsoleHighlighterVisitor());
+        } catch (LexerException|ParserException) {
+            return $pattern;
+        }
+    }
+
+    private function renderValidationSection(ConsoleStyle $style, string $highlightedPattern): void
+    {
+        $style->renderSection('Validating pattern', 1, 1);
+        $style->renderPattern($highlightedPattern);
+    }
+
+    private function renderSuccessResult(ConsoleStyle $style, Output $output): int
+    {
+        $style->renderKeyValueBlock([
+            'Status' => $output->success('OK'),
+        ]);
+
+        return 0;
+    }
+
+    private function renderErrorResult(ConsoleStyle $style, Output $output, ValidationResult $validation): int
+    {
+        $style->renderKeyValueBlock([
+            'Status' => $output->error('INVALID'),
+        ]);
+
+        if (null !== $validation->error) {
+            $output->write('  '.$output->error($validation->error)."\n");
+        }
+
+        return 1;
+    }
+}
