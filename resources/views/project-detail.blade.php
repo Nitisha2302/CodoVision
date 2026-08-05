@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'CodoVision - ' . $project['title'])
+@section('title', 'CodoVision - ' . $project['title'] . ' | Case Study')
+@section('meta_description', 'CodoVision case study: ' . $project['title'] . '. ' . \Illuminate\Support\Str::limit(strip_tags($project['description'] ?? ''), 140))
+@section('meta_keywords', 'CodoVision ' . $project['title'] . ', CodoVision projects, CodoVision case study, software development portfolio Mohali, app development case study India, ' . implode(', ', $project['tags'] ?? []))
+@section('meta_canonical', url('/projects/' . $project['slug']))
 
 @section('content')
 @php

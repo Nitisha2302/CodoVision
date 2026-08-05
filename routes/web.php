@@ -128,6 +128,7 @@ Route::post('/data/ai-product-generator/generate', [AiProductGeneratorController
 
 Route::post('/chatbot/submit', [LeadController::class, 'submitChatbot'])->name('chatbot.submit');
 Route::post('/book-package', [LeadController::class, 'submitBooking'])->name('package.book');
+Route::post('/book-meeting', [LeadController::class, 'submitMeeting'])->name('meeting.book');
 Route::post('/reviews/submit', [LeadController::class, 'submitReview'])->name('reviews.submit');
 Route::get('/reviews/feed', [LeadController::class, 'reviewsFeed'])->name('reviews.feed');
 

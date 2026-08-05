@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'CodoVision - About')
-@section('meta_description', 'Learn about CodoVision Software Solutions, our mission, values, engineering approach, and commitment to delivering reliable digital products for business growth.')
-@section('meta_keywords', 'about software company, IT company profile, software engineering team, product development company, digital transformation partner, software development agency India')
+@section('title', 'About CodoVision | Software Engineering Company in Mohali')
+@section('meta_description', 'Learn about CodoVision Software Solutions in Mohali — our mission, values, engineering approach, and commitment to delivering reliable digital products for business growth.')
+@section('meta_keywords', 'about CodoVision, CodoVision company profile, CodoVision Software Solutions, CodoVision Mohali, CodoVision team, software engineering team Mohali, IT company profile Punjab, product development company India, digital transformation partner, software development agency India, best IT company Mohali')
 @section('meta_canonical', url('/about'))
 @section('og_title', 'About CodoVision - Software Engineering Partner')
 @section('og_description', 'Discover CodoVision mission, delivery standards, and client-focused engineering approach.')
@@ -18,53 +18,7 @@
     'heroImage' => 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1600&q=90',
 ])
 
-<section class="section page-section" id="about">
-    <div class="about-showcase">
-        <div class="about-visual-cluster animate-on-scroll">
-            <img src="{{ asset('images/Fitzme_ok.png') }}" alt="Project 1" class="about-float-img about-float-1">
-            <img src="{{ asset('images/MyTalent.png') }}" alt="Project 2" class="about-float-img about-float-2">
-            <img src="{{ asset('images/SIMS.png') }}" alt="Project 3" class="about-float-img about-float-3">
-            <img src="{{ asset('images/food_app.png') }}" alt="Project 4" class="about-float-img about-float-4">
-            <span class="about-visual-badge">Our Work</span>
-        </div>
-        <div class="about-copy animate-on-scroll">
-            <div class="section-badge">Company Profile</div>
-            <h2>Building Products That <span class="gradient-text">Create Impact</span></h2>
-            <p class="plain-explainer"><strong>Our mission:</strong> Build reliable, scalable digital products for startups and growing organizations.</p>
-            <p class="plain-explainer"><strong>Our vision:</strong> Become a trusted long-term technology partner known for quality and transparency.</p>
-        </div>
-    </div>
-</section>
-
-<section class="section page-section">
-    <div class="section-header animate-on-scroll">
-        <div class="section-badge">Core Values</div>
-        <h2>How We Deliver <span class="gradient-text">Professional Outcomes</span></h2>
-    </div>
-    <div class="features-grid">
-        <div class="feature-card animate-on-scroll">
-            <div class="service-icon icon-blue">🎯</div>
-            <div class="feature-info">
-                <h4>Outcome Focus</h4>
-                <p>Every recommendation maps to product growth, performance, or efficiency.</p>
-            </div>
-        </div>
-        <div class="feature-card animate-on-scroll">
-            <div class="service-icon icon-pink">🧪</div>
-            <div class="feature-info">
-                <h4>Engineering Rigor</h4>
-                <p>Code quality, testing, and maintainability in every delivery cycle.</p>
-            </div>
-        </div>
-        <div class="feature-card animate-on-scroll">
-            <div class="service-icon icon-orange">🤝</div>
-            <div class="feature-info">
-                <h4>Client Partnership</h4>
-                <p>We work as an extension of your team with clear communication.</p>
-            </div>
-        </div>
-    </div>
-</section>
+@include('partials.founder')
 
 <section class="section page-section faq-home-section">
     <div class="section-header animate-on-scroll">

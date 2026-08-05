@@ -1,24 +1,39 @@
 @extends('layouts.app')
 
-@section('title', 'CodoVision - Home')
-@section('meta_description', 'Professional app development agency for startups and businesses. CodoVision builds scalable MVPs, marketplace apps, delivery platforms, and AI-powered mobile apps with fast execution.')
-@section('meta_keywords', 'software development company, IT company, web development company, mobile app development company, custom software development services, startup MVP development, marketplace app development, food delivery app development, logistics app development, healthcare app development, education app development, ecommerce development, SaaS development, flutter app development, react native development, laravel development company, AI app development, cloud deployment services, DevOps services, UI UX design services, enterprise software development, product engineering services, app maintenance and support')
+@section('title', 'CodoVision | Software & Mobile App Development Company in Mohali')
+@section('meta_description', 'CodoVision is a software development company in Mohali, Punjab. We build scalable MVPs, marketplace apps, delivery platforms, web apps, and AI-powered mobile apps for startups and businesses.')
+@section('meta_keywords', 'CodoVision, CodoVision Tech, CodoVision Software Solutions, CodoVision Mohali, CodoVision Chandigarh, CodoVision Punjab, CodoVision India, CodoVision Sector 75, software development company Mohali, IT company Mohali, IT company Chandigarh, web development company Mohali, mobile app development company Mohali, app development company Punjab, custom software development India, startup MVP development, marketplace app development, food delivery app development, logistics app development, healthcare app development, education app development, ecommerce development, SaaS development company, Flutter app development, React Native development, Laravel development company, Next.js development, AI app development, AI software company India, cloud deployment services, DevOps services, UI UX design Mohali, enterprise software development, product engineering services, app maintenance and support, digital transformation company, software outsourcing India, hire app developers Mohali, best software company Mohali, software company near me Mohali')
 @section('meta_canonical', url('/'))
 @section('og_title', 'CodoVision - Software Development & Mobile App Development Company')
-@section('og_description', 'CodoVision builds scalable web and mobile apps, MVPs, and enterprise software for startups and businesses.')
+@section('og_description', 'CodoVision builds scalable web and mobile apps, MVPs, and enterprise software for startups and businesses from Mohali, Punjab.')
 @section('og_image', asset('images/logo.png'))
 @section('twitter_title', 'CodoVision - Software Development & Mobile App Development Company')
-@section('twitter_description', 'Custom software, mobile apps, startup MVPs, and enterprise-grade digital product engineering.')
+@section('twitter_description', 'Custom software, mobile apps, startup MVPs, and enterprise-grade digital product engineering by CodoVision.')
 @section('twitter_image', asset('images/logo.png'))
 @section('head_extras')
+@php
+    $companyAddress = config('portfolio.company_address_parts');
+@endphp
 <script type="application/ld+json">
 {
   "@@context": "https://schema.org",
   "@@type": "ProfessionalService",
   "name": "CodoVision",
+  "alternateName": ["CodoVision Tech", "CodoVision Software Solutions"],
   "url": "{{ url('/') }}",
-  "description": "Startup MVP, mobile app, marketplace app, and AI integration development services.",
-  "areaServed": "Global",
+  "description": "CodoVision provides startup MVP, mobile app, marketplace app, web development, and AI integration services in Mohali, Punjab.",
+  "image": "{{ asset('images/logo.png') }}",
+  "telephone": "{{ config('portfolio.company_phone') }}",
+  "email": "{{ config('portfolio.company_email') }}",
+  "areaServed": ["Global", "India", "Mohali", "Chandigarh", "Punjab"],
+  "address": {
+    "@@type": "PostalAddress",
+    "streetAddress": "{{ $companyAddress['street'] }}",
+    "addressLocality": "{{ $companyAddress['locality'] }}",
+    "addressRegion": "{{ $companyAddress['region'] }}",
+    "postalCode": "{{ $companyAddress['postal'] }}",
+    "addressCountry": "{{ $companyAddress['country'] }}"
+  },
   "serviceType": [
     "Startup MVP Development",
     "Marketplace App Development",
@@ -26,8 +41,11 @@
     "AI App Development",
     "Web Development",
     "Mobile App Development",
-    "Enterprise Software Development"
-  ]
+    "Enterprise Software Development",
+    "UI UX Design",
+    "SaaS Development"
+  ],
+  "keywords": "CodoVision, software development company Mohali, mobile app development, web development, MVP development"
 }
 </script>
 <script type="application/ld+json">
@@ -35,8 +53,19 @@
   "@@context": "https://schema.org",
   "@@type": "Organization",
   "name": "CodoVision",
+  "alternateName": ["CodoVision Tech", "CodoVision Software Solutions"],
   "url": "{{ url('/') }}",
   "logo": "{{ asset('images/logo.png') }}",
+  "email": "{{ config('portfolio.company_email') }}",
+  "telephone": "{{ config('portfolio.company_phone') }}",
+  "address": {
+    "@@type": "PostalAddress",
+    "streetAddress": "{{ $companyAddress['street'] }}",
+    "addressLocality": "{{ $companyAddress['locality'] }}",
+    "addressRegion": "{{ $companyAddress['region'] }}",
+    "postalCode": "{{ $companyAddress['postal'] }}",
+    "addressCountry": "{{ $companyAddress['country'] }}"
+  },
   "sameAs": [
     "https://www.linkedin.com/company/codovisiontech/home/"
   ]
@@ -45,8 +74,35 @@
 <script type="application/ld+json">
 {
   "@@context": "https://schema.org",
+  "@@type": "LocalBusiness",
+  "name": "CodoVision",
+  "image": "{{ asset('images/logo.png') }}",
+  "url": "{{ url('/') }}",
+  "telephone": "{{ config('portfolio.company_phone') }}",
+  "email": "{{ config('portfolio.company_email') }}",
+  "priceRange": "$$",
+  "address": {
+    "@@type": "PostalAddress",
+    "streetAddress": "{{ $companyAddress['street'] }}",
+    "addressLocality": "{{ $companyAddress['locality'] }}",
+    "addressRegion": "{{ $companyAddress['region'] }}",
+    "postalCode": "{{ $companyAddress['postal'] }}",
+    "addressCountry": "{{ $companyAddress['country'] }}"
+  },
+  "openingHoursSpecification": {
+    "@@type": "OpeningHoursSpecification",
+    "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    "opens": "10:00",
+    "closes": "19:00"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
   "@@type": "WebSite",
   "name": "CodoVision",
+  "alternateName": "CodoVision Tech",
   "url": "{{ url('/') }}"
 }
 </script>
@@ -308,31 +364,61 @@
     </div>
 </section>
 
-{{-- Services with images --}}
-<section class="section" id="services">
-    <div class="section-header animate-on-scroll">
+{{-- Services explorer: main options + inner detail --}}
+<section class="section services-home-section" id="services">
+    <div class="section-header section-header-compact animate-on-scroll">
         <div class="section-badge">Our Services</div>
-        <h2>Accelerating Growth Through <span class="gradient-text">Digital Innovation</span></h2>
-        <p class="section-subtitle">Pick a service below — each card shows what we build and why it helps your business.</p>
+        <h2>What We <span class="gradient-text">Build</span></h2>
+        <p class="section-subtitle">Choose a service on the left — details appear instantly on the right.</p>
     </div>
-    <div class="services-visual-grid">
-        @foreach($services ?? [] as $service)
-            @php
-                $img = $serviceImages[$service['slug']] ?? 'images/crm.png';
-                $iconSvg = $serviceIconSvg[$service['slug']] ?? '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/></svg>';
-            @endphp
-            <a href="{{ route('services.detail', $service['slug']) }}" class="service-visual-card card-link animate-on-scroll">
-                <div class="service-visual-media">
-                    <img src="{{ asset($img) }}" alt="{{ $service['title'] }}">
-                    <span class="service-visual-icon {{ $service['icon_class'] }}">{!! $iconSvg !!}</span>
-                </div>
-                <div class="service-visual-body">
-                    <h3>{{ $service['title'] }}</h3>
-                    <p>{{ $service['summary'] }}</p>
-                    <span class="learn-more">View full details →</span>
-                </div>
-            </a>
-        @endforeach
+    <div class="services-home-layout">
+        <div class="services-steps-nav animate-on-scroll" role="tablist" aria-label="Services">
+            @foreach($services ?? [] as $i => $service)
+                @php
+                    $iconSvg = $serviceIconSvg[$service['slug']] ?? '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/></svg>';
+                @endphp
+                <button type="button"
+                        class="service-step-btn {{ $i === 0 ? 'is-active' : '' }}"
+                        data-service="{{ $i }}"
+                        role="tab"
+                        aria-selected="{{ $i === 0 ? 'true' : 'false' }}">
+                    <span class="service-step-icon {{ $service['icon_class'] }}">{!! $iconSvg !!}</span>
+                    <span class="service-step-copy">
+                        <span class="service-step-label">{{ $service['title'] }}</span>
+                        <span class="service-step-hint">{{ \Illuminate\Support\Str::limit($service['summary'], 42) }}</span>
+                    </span>
+                </button>
+            @endforeach
+        </div>
+        <div class="services-detail-panel animate-on-scroll">
+            @foreach($services ?? [] as $i => $service)
+                @php
+                    $img = $serviceImages[$service['slug']] ?? 'images/crm.png';
+                    $iconSvg = $serviceIconSvg[$service['slug']] ?? '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/></svg>';
+                @endphp
+                <article class="service-detail-card {{ $i === 0 ? 'is-active' : '' }}" data-service-panel="{{ $i }}" role="tabpanel">
+                    <div class="service-detail-media">
+                        <img src="{{ asset($img) }}" alt="{{ $service['title'] }}" loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
+                        <span class="service-visual-icon {{ $service['icon_class'] }}">{!! $iconSvg !!}</span>
+                    </div>
+                    <div class="service-detail-body">
+                        <h3>{{ $service['title'] }}</h3>
+                        <p>{{ $service['summary'] }}</p>
+                        @if(!empty($service['features']))
+                            <ul class="service-detail-features">
+                                @foreach(array_slice($service['features'], 0, 4) as $feature)
+                                    <li>{{ $feature }}</li>
+                                @endforeach
+                            </ul>
+                        @endif
+                        <div class="service-detail-actions">
+                            <a href="{{ route('services.detail', $service['slug']) }}" class="btn-primary" style="text-decoration:none;">View full details →</a>
+                            <a href="{{ route('services') }}" class="learn-more">All services</a>
+                        </div>
+                    </div>
+                </article>
+            @endforeach
+        </div>
     </div>
 </section>
 
@@ -417,10 +503,10 @@
 
 {{-- Process timeline --}}
 <section class="section process-home-section">
-    <div class="section-header animate-on-scroll">
+    <div class="section-header section-header-compact animate-on-scroll">
         <div class="section-badge">How We Work</div>
-        <h2>Scale Your Business with <span class="gradient-text">Agile Development</span></h2>
-        <p class="section-subtitle">Our process is easy to follow — click each step to see what happens and what you receive.</p>
+        <h2>Our <span class="gradient-text">Process</span></h2>
+        <p class="section-subtitle">Select a step to see what we do and what you receive.</p>
     </div>
     <div class="process-home-layout">
         <div class="process-steps-nav animate-on-scroll">

@@ -3,7 +3,7 @@
         <div class="footer-about">
             <div class="logo">
                 <div class="logo-icon">
-                    <img src="{{ asset('images/logo.png') }}" alt="logo">
+                    <img src="{{ asset('images/logo.png') }}" alt="CodoVision">
                 </div>
                 <div class="logo-text">
                     <h1>CodoVision</h1>
@@ -57,7 +57,7 @@
             </div>
             <div class="contact-item">
                 <span>📍</span>
-                Sector 71, Mohali, Punjab, India
+                {{ config('portfolio.company_address') }}
             </div>
         </div>
     </div>

@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'CodoVision - Process')
+@section('title', 'CodoVision Process | How We Build Software Products')
+@section('meta_description', 'Discover the CodoVision software development process — discovery, design, development, and launch with clear milestones for startups and businesses.')
+@section('meta_keywords', 'CodoVision process, CodoVision delivery model, software development process Mohali, agile software development India, MVP development process, product engineering process, app development methodology, CodoVision workflow, software project lifecycle')
+@section('meta_canonical', url('/process'))
 
 @section('content')
 @include('partials.page-hero', [
@@ -12,7 +15,7 @@
 
 <section class="section page-section" id="process">
     <div class="section-header animate-on-scroll">
-        <div class="section-badge">Delivery Model</motion>
+        <div class="section-badge">Delivery Model</div>
         <h2>Four Phases to <span class="gradient-text">Launch</span></h2>
         <p class="section-subtitle">Business outcomes, engineering quality, and timelines — aligned from day one.</p>
     </div>

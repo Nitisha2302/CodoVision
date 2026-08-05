@@ -1,8 +1,15 @@
 @extends('layouts.app')
 
-@section('title', 'CodoVision - Technologies')
+@section('title', 'CodoVision Technologies | Flutter, React Native, Java, Kotlin & More')
+@section('meta_description', 'Explore the CodoVision technology stack — Flutter, React Native, Java, Kotlin, Laravel, Next.js, AI integrations, cloud, and DevOps tools used to build scalable products.')
+@section('meta_keywords', 'CodoVision technologies, Flutter development Mohali, React Native company India, Java Android development, Kotlin app development, Laravel developers Mohali, Next.js development, AI integration services, mobile app technology stack, CodoVision Software Solutions technology')
+@section('meta_canonical', url('/technologies'))
 
 @section('content')
+@php
+    $groupedTechnologies = collect($technologies)->groupBy('category');
+@endphp
+
 @include('partials.page-hero', [
     'heroBadge' => 'Technology Stack',
     'heroTitle' => 'Technologies We Use and Why',
@@ -14,26 +21,35 @@
     <div class="section-header animate-on-scroll">
         <div class="section-badge">Our Stack</div>
         <h2>Production-Ready <span class="gradient-text">Technologies</span></h2>
-        <p class="section-subtitle">Full project case studies are in the Projects section.</p>
+        <p class="section-subtitle">Browse by category — Mobile App, Frontend, Backend, Cloud, and more.</p>
     </div>
 
-    <div class="tech-expertise-grid">
-        @foreach($technologies as $technology)
-            <article class="detail-card animate-on-scroll">
-                <h3>{{ $technology['name'] }}</h3>
-                <p class="stack-category">{{ $technology['category'] }}</p>
-                <p>{{ $technology['summary'] }}</p>
-                <p class="stack-usecase"><strong>Where we use it:</strong> {{ $technology['use_cases'] }}</p>
-                @if(!empty($technology['similar_stack']))
-                    <div class="project-tags" style="margin-top: 12px;">
-                        @foreach($technology['similar_stack'] as $similar)
-                            <span class="project-tag">{{ $similar }}</span>
-                        @endforeach
-                    </div>
-                @endif
-            </article>
-        @endforeach
-    </div>
+    @foreach($groupedTechnologies as $category => $items)
+        <div class="tech-category-block animate-on-scroll" id="{{ \Illuminate\Support\Str::slug($category) }}">
+            <div class="tech-category-head">
+                <h3>{{ $category }}</h3>
+                <span>{{ $items->count() }} tools</span>
+            </div>
+            <div class="tech-expertise-grid">
+                @foreach($items as $technology)
+                    <article class="detail-card" id="{{ $technology['slug'] ?? \Illuminate\Support\Str::slug($technology['name']) }}">
+                        <h3>{{ $technology['name'] }}</h3>
+                        <p class="stack-category">{{ $technology['category'] }}</p>
+                        <p>{{ $technology['summary'] }}</p>
+                        <p class="stack-usecase"><strong>Where we use it:</strong> {{ $technology['use_cases'] }}</p>
+                        @if(!empty($technology['similar_stack']))
+                            <div class="project-tags" style="margin-top: 12px;">
+                                @foreach($technology['similar_stack'] as $similar)
+                                    <span class="project-tag">{{ $similar }}</span>
+                                @endforeach
+                            </div>
+                        @endif
+                    </article>
+                @endforeach
+            </div>
+        </div>
+    @endforeach
+
     <div class="center-link-row">
         <a href="{{ route('projects') }}" class="btn-primary" style="text-decoration:none; display:inline-flex;">View All Real Projects →</a>
     </div>

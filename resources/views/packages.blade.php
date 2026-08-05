@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'CodoVision - Service Packages')
+@section('title', 'CodoVision Service Packages | Affordable App & Web Pricing')
+@section('meta_description', 'Compare CodoVision service packages for web, mobile, and software development. Transparent pricing for startups and businesses in Mohali and across India.')
+@section('meta_keywords', 'CodoVision packages, CodoVision pricing, app development cost Mohali, web development packages India, software development pricing, MVP development cost, Flutter app package, mobile app development packages, CodoVision service plans')
+@section('meta_canonical', url('/packages'))
 
 @section('content')
 @php

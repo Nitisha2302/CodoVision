@@ -1,14 +1,39 @@
 @extends('layouts.app')
 
-@section('title', 'CodoVision - Contact')
-@section('meta_description', 'Contact CodoVision Software Solutions for web and mobile app development, MVP planning, software consulting, and project execution support.')
-@section('meta_keywords', 'contact software company, app development consultation, IT project quote, software consulting services, startup MVP consultation, web development contact')
+@section('title', 'Contact CodoVision | Software Company Mohali Punjab')
+@section('meta_description', 'Contact CodoVision Software Solutions at F547 PH-8A Industrial Area, Sector 75, Mohali. Get quotes for web development, mobile app development, MVP planning, and software consulting.')
+@section('meta_keywords', 'contact CodoVision, CodoVision Mohali, CodoVision address, CodoVision Sector 75, software company Mohali contact, app development consultation Mohali, IT project quote Punjab, software consulting CodoVision, startup MVP consultation Mohali, web development contact Chandigarh, CodoVision phone, info@codovision.tech')
 @section('meta_canonical', url('/contact'))
 @section('og_title', 'Contact CodoVision - Start Your Software Project')
-@section('og_description', 'Get in touch with CodoVision for app development, software solutions, and project consultation.')
+@section('og_description', 'Get in touch with CodoVision in Mohali for app development, software solutions, and project consultation.')
 @section('og_url', url('/contact'))
 @section('twitter_title', 'Contact CodoVision')
-@section('twitter_description', 'Reach out for software project consultation, roadmap, and delivery planning.')
+@section('twitter_description', 'Reach out for software project consultation, roadmap, and delivery planning in Mohali.')
+@section('head_extras')
+@php $companyAddress = config('portfolio.company_address_parts'); @endphp
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "ContactPage",
+  "name": "Contact CodoVision",
+  "url": "{{ url('/contact') }}",
+  "mainEntity": {
+    "@@type": "Organization",
+    "name": "CodoVision",
+    "email": "{{ config('portfolio.company_email') }}",
+    "telephone": "{{ config('portfolio.company_phone') }}",
+    "address": {
+      "@@type": "PostalAddress",
+      "streetAddress": "{{ $companyAddress['street'] }}",
+      "addressLocality": "{{ $companyAddress['locality'] }}",
+      "addressRegion": "{{ $companyAddress['region'] }}",
+      "postalCode": "{{ $companyAddress['postal'] }}",
+      "addressCountry": "{{ $companyAddress['country'] }}"
+    }
+  }
+}
+</script>
+@endsection
 
 @section('content')
 @include('partials.page-hero', [
@@ -38,46 +63,48 @@
         <div class="service-card animate-on-scroll">
             <div class="service-icon icon-orange">📍</div>
             <h3>Location</h3>
-            <p>Sector 71, Mohali, Punjab, India</p>
+            <p>{{ config('portfolio.company_address') }}</p>
         </div>
     </div>
 </section>
 
+@include('partials.meeting-booking')
+
 <section class="section page-section">
     <div class="section-header animate-on-scroll">
         <div class="section-badge">What Happens Next</div>
-        <h2>After You <span class="gradient-text">Contact Us</span></h2>
+        <h2>After You <span class="gradient-text">Book a Meeting</span></h2>
     </div>
     <div class="process-grid">
         <div class="process-step animate-on-scroll">
             <div class="process-number">01</div>
-            <div class="service-icon icon-blue">📞</div>
+            <div class="service-icon icon-blue">📅</div>
+            <h3>Pick Slot</h3>
+            <p>Choose date, time, and share what you want to discuss.</p>
+        </div>
+        <div class="process-step animate-on-scroll">
+            <div class="process-number">02</div>
+            <div class="service-icon icon-pink">✉</div>
+            <h3>Get Confirmation</h3>
+            <p>Meeting details are emailed to you instantly.</p>
+        </div>
+        <div class="process-step animate-on-scroll">
+            <div class="process-number">03</div>
+            <div class="service-icon icon-orange">📞</div>
             <h3>Discovery Call</h3>
             <p>We understand your goals, users, and timeline.</p>
         </div>
         <div class="process-step animate-on-scroll">
-            <div class="process-number">02</div>
-            <div class="service-icon icon-pink">📝</div>
-            <h3>Solution Draft</h3>
-            <p>Roadmap with scope, timeline, and pricing options.</p>
-        </div>
-        <div class="process-step animate-on-scroll">
-            <div class="process-number">03</div>
-            <div class="service-icon icon-orange">⚙️</div>
-            <h3>Execution Start</h3>
-            <p>Kickoff with milestones and weekly updates.</p>
-        </div>
-        <div class="process-step animate-on-scroll">
             <div class="process-number">04</div>
             <div class="service-icon icon-green">🚀</div>
-            <h3>Build & Launch</h3>
-            <p>QA, release, and post-launch optimization.</p>
+            <h3>Clear Next Steps</h3>
+            <p>Roadmap, scope options, and recommended path forward.</p>
         </div>
     </div>
 </section>
 
 @include('partials.cta-premium', [
     'ctaTitle' => 'Ready to Start?',
-    'ctaSubtitle' => 'Use the side buttons to call, chat, or book a meeting instantly.',
+    'ctaSubtitle' => 'Book a meeting above, or use the side buttons to call or chat instantly.',
 ])
 @endsection

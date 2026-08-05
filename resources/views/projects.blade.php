@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'CodoVision - Projects')
+@section('title', 'CodoVision Projects | Software & App Development Portfolio')
 @section('meta_description', 'View CodoVision project portfolio and case studies across mobile apps, web platforms, logistics, healthcare, education, and enterprise software delivery.')
-@section('meta_keywords', 'software development portfolio, mobile app case studies, web development projects, IT company portfolio, app development examples, logistics software project, healthcare app case study, enterprise software case studies')
+@section('meta_keywords', 'CodoVision projects, CodoVision portfolio, CodoVision case studies, software development portfolio Mohali, mobile app case studies, web development projects India, IT company portfolio, app development examples, logistics software project, healthcare app case study, enterprise software case studies, CodoVision work')
 @section('meta_canonical', url('/projects'))
 @section('og_title', 'CodoVision Projects - Real Software Case Studies')
 @section('og_description', 'Explore real-world software projects delivered by CodoVision for startups and enterprises.')

@@ -5,10 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="author" content="@yield('meta_author', 'CodoVision')">
-    <meta name="description" content="@yield('meta_description', 'CodoVision builds scalable mobile and web apps for startups and businesses.')">
-    <meta name="keywords" content="@yield('meta_keywords', 'mobile app development, startup MVP development, marketplace app development, flutter app development, react native development, AI app integration')">
+    <meta name="description" content="@yield('meta_description', 'CodoVision is a software development company in Mohali building scalable mobile apps, web apps, MVPs, and enterprise software for startups and businesses.')">
+    <meta name="keywords" content="@yield('meta_keywords', 'CodoVision, CodoVision Tech, CodoVision Software Solutions, CodoVision Mohali, CodoVision Chandigarh, CodoVision Punjab, software development company Mohali, IT company Mohali, mobile app development company Mohali, web development company Mohali, custom software development India, startup MVP development, Flutter app development, React Native development, Laravel development company, AI app development, SaaS development, UI UX design Mohali, enterprise software development, product engineering services')">
     <meta name="robots" content="index,follow">
     <meta name="googlebot" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">
+    <meta name="geo.region" content="IN-PB">
+    <meta name="geo.placename" content="Mohali">
+    <meta name="geo.position" content="30.7046;76.7179">
+    <meta name="ICBM" content="30.7046, 76.7179">
     <link rel="canonical" href="@yield('meta_canonical', url()->current())">
     <meta property="og:type" content="@yield('og_type', 'website')">
     <meta property="og:site_name" content="@yield('og_site_name', 'CodoVision')">
@@ -18,11 +22,11 @@
     <meta property="og:image" content="@yield('og_image', asset('images/logo.png'))">
     <meta name="twitter:card" content="@yield('twitter_card', 'summary_large_image')">
     <meta name="twitter:title" content="@yield('twitter_title', trim($__env->yieldContent('title', 'CodoVision')))">
-    <meta name="twitter:description" content="@yield('twitter_description', trim($__env->yieldContent('meta_description', 'CosoVision builds scalable mobile and web apps for startups and businesses.')))">
+    <meta name="twitter:description" content="@yield('twitter_description', trim($__env->yieldContent('meta_description', 'CodoVision builds scalable mobile and web apps for startups and businesses.')))">
     <meta name="twitter:image" content="@yield('twitter_image', asset('images/logo.png'))">
     <title>@yield('title', 'CodoVision')</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link rel="icon" href="{{ asset('favicon_trispark.png') }}" type="image/x-icon">
+    <link rel="icon" href="{{ asset('favicon_codovision.png') }}" type="image/png">
     @yield('head_extras')
 </head>
 <body>
@@ -102,11 +106,133 @@
 
         const navToggle = document.getElementById('navToggle');
         const navLinks = document.getElementById('navLinks');
+        const dropdownItems = document.querySelectorAll('.has-dropdown');
+
+        const closeAllDropdowns = () => {
+            dropdownItems.forEach((item) => {
+                item.classList.remove('is-open');
+                const parent = item.querySelector('.nav-parent');
+                if (parent) {
+                    parent.setAttribute('aria-expanded', 'false');
+                }
+            });
+            document.querySelectorAll('.has-submenu.is-open').forEach((item) => {
+                item.classList.remove('is-open');
+                const parent = item.querySelector('.submenu-parent');
+                if (parent) {
+                    parent.setAttribute('aria-expanded', 'false');
+                }
+            });
+        };
+
+        const closeMobileNav = () => {
+            if (!navLinks || !navToggle) {
+                return;
+            }
+            navLinks.classList.remove('active');
+            navToggle.setAttribute('aria-expanded', 'false');
+            navToggle.setAttribute('aria-label', 'Open menu');
+            closeAllDropdowns();
+        };
+
         if (navToggle && navLinks) {
             navToggle.addEventListener('click', () => {
-                navLinks.classList.toggle('active');
+                const willOpen = !navLinks.classList.contains('active');
+                navLinks.classList.toggle('active', willOpen);
+                navToggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+                navToggle.setAttribute('aria-label', willOpen ? 'Close menu' : 'Open menu');
+                if (!willOpen) {
+                    closeAllDropdowns();
+                }
             });
         }
+
+        dropdownItems.forEach((item) => {
+            const parent = item.querySelector('.nav-parent');
+            if (!parent) {
+                return;
+            }
+
+            parent.addEventListener('click', (event) => {
+                const isMobileNav = window.matchMedia('(max-width: 768px)').matches;
+                if (!isMobileNav) {
+                    return;
+                }
+
+                event.preventDefault();
+                const willOpen = !item.classList.contains('is-open');
+                closeAllDropdowns();
+                item.classList.toggle('is-open', willOpen);
+                parent.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            });
+        });
+
+        const submenuItems = document.querySelectorAll('.has-submenu');
+        const closeAllSubmenus = (except = null) => {
+            submenuItems.forEach((item) => {
+                if (item === except) {
+                    return;
+                }
+                item.classList.remove('is-open');
+                const parent = item.querySelector('.submenu-parent');
+                if (parent) {
+                    parent.setAttribute('aria-expanded', 'false');
+                }
+            });
+        };
+
+        submenuItems.forEach((item) => {
+            const parent = item.querySelector('.submenu-parent');
+            if (!parent) {
+                return;
+            }
+
+            parent.addEventListener('click', (event) => {
+                const isMobileNav = window.matchMedia('(max-width: 768px)').matches;
+                if (!isMobileNav) {
+                    return;
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+                const willOpen = !item.classList.contains('is-open');
+                closeAllSubmenus(item);
+                item.classList.toggle('is-open', willOpen);
+                parent.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            });
+        });
+
+        if (navLinks) {
+            navLinks.querySelectorAll('a').forEach((link) => {
+                link.addEventListener('click', () => {
+                    if (window.matchMedia('(max-width: 768px)').matches) {
+                        closeMobileNav();
+                    }
+                });
+            });
+        }
+
+        document.addEventListener('click', (event) => {
+            if (!(event.target instanceof Element)) {
+                return;
+            }
+            if (!event.target.closest('nav')) {
+                closeMobileNav();
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            if (!window.matchMedia('(max-width: 768px)').matches) {
+                closeAllDropdowns();
+                if (navLinks) {
+                    navLinks.classList.remove('active');
+                }
+                if (navToggle) {
+                    navToggle.setAttribute('aria-expanded', 'false');
+                    navToggle.setAttribute('aria-label', 'Open menu');
+                }
+            }
+        });
 
         document.querySelectorAll('.js-whatsapp').forEach((button) => {
             button.addEventListener('click', () => {
@@ -131,7 +257,7 @@
         });
 
         const revealTargets = document.querySelectorAll(
-            '.service-card, .project-card, .feature-card, .detail-card, .testimonial-card, .process-step, .animate-on-scroll, .trusted-item, .service-visual-card, .solution-card, .visual-story-card, .why-point, .about-showcase > *'
+            '.service-card, .project-card, .feature-card, .detail-card, .testimonial-card, .process-step, .animate-on-scroll, .trusted-item, .service-visual-card, .solution-card, .visual-story-card, .why-point, .about-showcase > *, .founder-shell'
         );
         revealTargets.forEach((item) => item.classList.add('animate-on-scroll'));
 
@@ -573,6 +699,23 @@
             });
         });
 
+        /* Services explorer tabs */
+        const serviceBtns = document.querySelectorAll('.service-step-btn');
+        const servicePanels = document.querySelectorAll('.service-detail-card');
+        serviceBtns.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const index = btn.getAttribute('data-service');
+                serviceBtns.forEach((b) => {
+                    const active = b === btn;
+                    b.classList.toggle('is-active', active);
+                    b.setAttribute('aria-selected', active ? 'true' : 'false');
+                });
+                servicePanels.forEach((panel) => {
+                    panel.classList.toggle('is-active', panel.getAttribute('data-service-panel') === index);
+                });
+            });
+        });
+
         /* Testimonial / review carousel */
         const testimonialSlides = document.querySelectorAll('.testimonial-slide');
         let testimonialIndex = 0;
@@ -613,6 +756,107 @@
                 }
             }, { passive: true });
         }
+
+        /* Meeting booking: date + slot picker */
+        const meetingForm = document.getElementById('meetingBookingForm');
+        const meetingDate = document.getElementById('meetingDate');
+        const meetingSlotInput = document.getElementById('meetingSlotInput');
+        const meetingSlotHint = document.getElementById('meetingSlotHint');
+        const meetingSlotButtons = document.querySelectorAll('.meeting-slot-btn');
+
+        const isSundayDate = (value) => {
+            if (!value) return false;
+            const date = new Date(`${value}T12:00:00`);
+            return date.getDay() === 0;
+        };
+
+        const syncMeetingSlots = () => {
+            if (!meetingDate || !meetingSlotButtons.length) return;
+            const sunday = isSundayDate(meetingDate.value);
+            meetingSlotButtons.forEach((button) => {
+                button.disabled = sunday;
+                if (sunday) {
+                    button.classList.remove('is-selected');
+                }
+            });
+            if (sunday && meetingSlotInput) {
+                meetingSlotInput.value = '';
+            }
+            if (meetingSlotHint) {
+                meetingSlotHint.textContent = sunday
+                    ? 'Sunday is unavailable. Please choose Monday–Saturday.'
+                    : 'Pick a Monday–Saturday date, then choose a slot.';
+            }
+        };
+
+        meetingSlotButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                if (button.disabled) return;
+                meetingSlotButtons.forEach((item) => item.classList.remove('is-selected'));
+                button.classList.add('is-selected');
+                if (meetingSlotInput) {
+                    meetingSlotInput.value = button.getAttribute('data-slot') || '';
+                }
+            });
+        });
+
+        meetingDate?.addEventListener('change', syncMeetingSlots);
+        syncMeetingSlots();
+
+        const openMeetingCalendar = () => {
+            if (!meetingDate) return;
+            try {
+                if (typeof meetingDate.showPicker === 'function') {
+                    meetingDate.showPicker();
+                    return;
+                }
+            } catch (error) {
+                // Fallback to focus/click for browsers that block showPicker.
+            }
+            meetingDate.focus();
+            meetingDate.click();
+        };
+
+        document.getElementById('meetingDateOpenBtn')?.addEventListener('click', (event) => {
+            event.preventDefault();
+            openMeetingCalendar();
+        });
+
+        document.getElementById('meetingDatePicker')?.addEventListener('click', (event) => {
+            if (event.target instanceof HTMLButtonElement) {
+                return;
+            }
+            openMeetingCalendar();
+        });
+
+        meetingDate?.addEventListener('focus', () => {
+            // Helps some browsers open the native calendar UI immediately.
+            try {
+                if (typeof meetingDate.showPicker === 'function') {
+                    meetingDate.showPicker();
+                }
+            } catch (error) {
+                // Ignore if browser blocks programmatic picker open.
+            }
+        });
+
+        meetingForm?.addEventListener('submit', (event) => {
+            if (!meetingSlotInput?.value) {
+                event.preventDefault();
+                if (meetingSlotHint) {
+                    meetingSlotHint.textContent = 'Please select a time slot before submitting.';
+                    meetingSlotHint.style.color = '#fca5a5';
+                }
+                return;
+            }
+            if (isSundayDate(meetingDate?.value || '')) {
+                event.preventDefault();
+                if (meetingSlotHint) {
+                    meetingSlotHint.textContent = 'Sunday is unavailable. Please choose Monday–Saturday.';
+                    meetingSlotHint.style.color = '#fca5a5';
+                }
+            }
+        });
     </script>
 </body>
 </html>

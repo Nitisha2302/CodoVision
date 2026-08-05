@@ -10,12 +10,12 @@
     ];
 @endphp
 
-@section('title', 'Design Studio — AR, VR & Visual Experience')
-@section('meta_description', 'Immersive design showcase: AR, VR, graphics, imagery, motion, and spatial visual experiences. A demo of high-quality creative design craft.')
-@section('meta_keywords', 'AR design, VR design, graphic design, motion graphics, 3D visuals, brand design, immersive experience design, visual design studio')
+@section('title', 'CodoVision Design Studio | AR, VR & Visual Experience')
+@section('meta_description', 'CodoVision immersive design showcase: AR, VR, graphics, imagery, motion, and spatial visual experiences crafted for modern digital brands.')
+@section('meta_keywords', 'CodoVision design, CodoVision design studio, AR design Mohali, VR design India, graphic design company Mohali, motion graphics, 3D visuals, brand design, immersive experience design, UI UX visual design, CodoVision creative studio')
 @section('meta_canonical', url('/design'))
-@section('og_title', 'Design Studio — AR, VR & Visual Experience')
-@section('og_description', 'Explore design expanded through AR, VR, imagery, animation, and immersive visual experiences.')
+@section('og_title', 'CodoVision Design Studio — AR, VR & Visual Experience')
+@section('og_description', 'Explore CodoVision design expanded through AR, VR, imagery, animation, and immersive visual experiences.')
 
 @section('head_extras')
 <link rel="preload" href="{{ $designVideos['experience'] }}" as="video" type="video/mp4">

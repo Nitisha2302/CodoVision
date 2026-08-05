@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class LeadController extends Controller
 {
@@ -79,6 +81,72 @@ class LeadController extends Controller
         $this->mailLead('New Service Package Booking', $payload);
 
         return back()->with('booking_success', 'Package request sent successfully. Our team will contact you shortly.');
+    }
+
+    public function submitMeeting(Request $request): RedirectResponse
+    {
+        $allowedSlots = config('portfolio.meeting_slots', []);
+        $allowedTypes = config('portfolio.meeting_types', []);
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'email' => ['required', 'email', 'max:180'],
+            'phone' => ['required', 'string', 'max:40'],
+            'meeting_date' => ['required', 'date', 'after_or_equal:today'],
+            'meeting_slot' => ['required', 'string', Rule::in($allowedSlots)],
+            'meeting_type' => ['required', 'string', Rule::in($allowedTypes)],
+            'meeting_about' => ['required', 'string', 'min:10', 'max:2000'],
+        ]);
+
+        $meetingDate = Carbon::parse($data['meeting_date'])->startOfDay();
+
+        if ($meetingDate->isSunday()) {
+            return back()
+                ->withInput()
+                ->withErrors(['meeting_date' => 'Please choose a Monday–Saturday date. Sunday slots are unavailable.']);
+        }
+
+        if ($meetingDate->gt(now()->addDays(60)->startOfDay())) {
+            return back()
+                ->withInput()
+                ->withErrors(['meeting_date' => 'Please choose a date within the next 60 days.']);
+        }
+
+        $payload = [
+            'source' => 'meeting_booking',
+            'submitted_at' => now()->toDateTimeString(),
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'phone' => $data['phone'],
+            'meeting_date' => $meetingDate->toDateString(),
+            'meeting_date_display' => $meetingDate->format('l, F j, Y'),
+            'meeting_slot' => $data['meeting_slot'],
+            'meeting_type' => $data['meeting_type'],
+            'meeting_about' => $data['meeting_about'],
+            'timezone' => 'IST (India Standard Time)',
+        ];
+
+        Storage::append('meetings.log', json_encode($payload, JSON_UNESCAPED_UNICODE));
+
+        try {
+            $this->assertMailConfigured();
+            $this->mailLead('New Meeting Booking — ' . $payload['meeting_date_display'], $payload);
+            $this->mailMeetingConfirmation($payload);
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return back()->with(
+                'meeting_success',
+                'Meeting is saved, but email could not be sent yet. Our team will still contact you at ' . $data['email'] . '. (Mail setup needed)'
+            )->withErrors([
+                'email' => 'Email sending failed: ' . $exception->getMessage(),
+            ]);
+        }
+
+        return back()->with(
+            'meeting_success',
+            'Meeting booked successfully. A confirmation email with your meeting details has been sent to ' . $data['email'] . '.'
+        );
     }
 
     public function submitReview(Request $request): JsonResponse
@@ -157,14 +225,83 @@ class LeadController extends Controller
 
     private function mailLead(string $subject, array $payload): void
     {
-        $recipient = config('portfolio.lead_email', env('MAIL_FROM_ADDRESS', 'hello@example.com'));
+        $recipient = config('portfolio.lead_email', env('MAIL_FROM_ADDRESS', 'info@codovision.tech'));
+        $fromAddress = config('mail.from.address', $recipient);
+        $fromName = config('mail.from.name', config('portfolio.company_name', 'CodoVision'));
 
         $body = collect($payload)
             ->map(fn ($value, $key) => strtoupper((string) $key) . ': ' . (is_scalar($value) ? (string) $value : json_encode($value)))
             ->implode("\n");
 
-        Mail::raw($body, function ($message) use ($recipient, $subject) {
-            $message->to($recipient)->subject($subject);
+        Mail::raw($body, function ($message) use ($recipient, $subject, $fromAddress, $fromName, $payload) {
+            $message->from($fromAddress, $fromName)
+                ->to($recipient)
+                ->subject($subject);
+
+            if (!empty($payload['email']) && filter_var($payload['email'], FILTER_VALIDATE_EMAIL)) {
+                $message->replyTo($payload['email'], $payload['name'] ?? null);
+            }
         });
+    }
+
+    private function mailMeetingConfirmation(array $payload): void
+    {
+        $companyName = config('portfolio.company_name', 'CodoVision');
+        $companyEmail = config('portfolio.company_email', 'info@codovision.tech');
+        $companyPhone = config('portfolio.company_phone', '+917973776933');
+        $companyAddress = config('portfolio.company_address', '');
+        $fromAddress = config('mail.from.address', $companyEmail);
+        $fromName = config('mail.from.name', $companyName);
+
+        $body = <<<TEXT
+Hi {$payload['name']},
+
+Thank you for booking a meeting with {$companyName}.
+
+Your meeting details:
+---------------------
+Date: {$payload['meeting_date_display']}
+Time Slot: {$payload['meeting_slot']}
+Timezone: {$payload['timezone']}
+Meeting Type: {$payload['meeting_type']}
+About the meeting: {$payload['meeting_about']}
+
+Your contact details:
+---------------------
+Name: {$payload['name']}
+Email: {$payload['email']}
+Phone: {$payload['phone']}
+
+Our team will join this meeting as scheduled. If you need to reschedule, reply to this email or contact us.
+
+{$companyName}
+Email: {$companyEmail}
+Phone: {$companyPhone}
+Address: {$companyAddress}
+
+Warm regards,
+{$companyName} Team
+TEXT;
+
+        Mail::raw($body, function ($message) use ($payload, $companyName, $companyEmail, $fromAddress, $fromName) {
+            $message->from($fromAddress, $fromName)
+                ->to($payload['email'])
+                ->replyTo($companyEmail, $companyName)
+                ->subject('Meeting Confirmed — ' . $payload['meeting_date_display'] . ' | ' . $companyName);
+        });
+    }
+
+    private function assertMailConfigured(): void
+    {
+        $mailer = (string) config('mail.default');
+        $password = (string) env('MAIL_PASSWORD', '');
+
+        if ($mailer === 'log') {
+            throw new \RuntimeException('Mail is set to log mode. Configure SMTP in .env to send real emails.');
+        }
+
+        if ($mailer === 'smtp' && trim($password) === '') {
+            throw new \RuntimeException('MAIL_PASSWORD is empty. Add your email SMTP password in .env to send meeting emails.');
+        }
     }
 }

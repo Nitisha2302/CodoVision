@@ -11,7 +11,7 @@
         <span class="fab-label">Chat</span>
     </button>
 
-    <a href="{{ route('contact') }}" class="fab fab-meeting fab-pulse-alt" title="Book a meeting">
+    <a href="{{ route('contact') }}#book-meeting" class="fab fab-meeting fab-pulse-alt" title="Book a meeting">
         <span class="fab-icon">📅</span>
         <span class="fab-label">Book Meeting</span>
     </a>

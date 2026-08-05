@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'CodoVision - ' . $service['title'])
+@section('title', 'CodoVision - ' . $service['title'] . ' | Software Services Mohali')
+@section('meta_description', 'CodoVision offers ' . $service['title'] . ' in Mohali, Punjab. ' . \Illuminate\Support\Str::limit(strip_tags($service['description'] ?? $service['summary'] ?? ''), 140))
+@section('meta_keywords', 'CodoVision ' . $service['title'] . ', ' . $service['title'] . ' Mohali, ' . $service['title'] . ' India, CodoVision services, software development company Mohali, app development company Punjab, CodoVision Tech')
+@section('meta_canonical', url('/services/' . $service['slug']))
 
 @section('content')
 @php
