@@ -1,5 +1,5 @@
 @php
-    $heroBadge = $heroBadge ?? 'Trispark Software Solutions';
+    $heroBadge = $heroBadge ?? 'CodoVision';
     $heroTitle = $heroTitle ?? 'Page Title';
     $heroSubtitle = $heroSubtitle ?? '';
     $heroImage = $heroImage ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1600&q=90';

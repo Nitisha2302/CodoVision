@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Trispark - AI Product Generator')
+@section('title', 'CodoVision - AI Product Generator')
 
 @section('content')
 <section class="section ai-generator-page" style="padding-top:150px;">

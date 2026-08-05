@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Trispark - Services')
-@section('meta_description', 'Explore Trispark software development services including web development, mobile app development, UI UX design, and automation solutions for startups and businesses.')
+@section('title', 'CodoVision - Services')
+@section('meta_description', 'Explore CodoVision software development services including web development, mobile app development, UI UX design, and automation solutions for startups and businesses.')
 @section('meta_keywords', 'software development services, web development services, mobile app development services, UI UX design company, automation solutions, custom software development, flutter development services, react native app development, laravel development services')
 @section('meta_canonical', url('/services'))
-@section('og_title', 'Trispark Services - Web, Mobile, UI UX, Automation')
+@section('og_title', 'CodoVision Services - Web, Mobile, UI UX, Automation')
 @section('og_description', 'End-to-end software development services for modern digital products.')
 @section('og_url', url('/services'))
-@section('twitter_title', 'Trispark Services - Software Development')
+@section('twitter_title', 'CodoVision Services - Software Development')
 @section('twitter_description', 'Web, mobile, design, and automation services delivered with quality and speed.')
 
 @section('content')

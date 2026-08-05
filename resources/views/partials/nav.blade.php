@@ -11,8 +11,7 @@
                 <img src="{{ asset('images/logo.png') }}" alt="logo">
             </div>
             <div class="logo-text">
-                <h1>Trispark</h1>
-                <p>Software Solutions</p>
+                <h1>CodoVision</h1>
             </div>
         </div>
     </div>

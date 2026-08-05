@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Trispark - Projects')
-@section('meta_description', 'View Trispark project portfolio and case studies across mobile apps, web platforms, logistics, healthcare, education, and enterprise software delivery.')
+@section('title', 'CodoVision - Projects')
+@section('meta_description', 'View CodoVision project portfolio and case studies across mobile apps, web platforms, logistics, healthcare, education, and enterprise software delivery.')
 @section('meta_keywords', 'software development portfolio, mobile app case studies, web development projects, IT company portfolio, app development examples, logistics software project, healthcare app case study, enterprise software case studies')
 @section('meta_canonical', url('/projects'))
-@section('og_title', 'Trispark Projects - Real Software Case Studies')
-@section('og_description', 'Explore real-world software projects delivered by Trispark for startups and enterprises.')
+@section('og_title', 'CodoVision Projects - Real Software Case Studies')
+@section('og_description', 'Explore real-world software projects delivered by CodoVision for startups and enterprises.')
 @section('og_url', url('/projects'))
-@section('twitter_title', 'Trispark Projects - Case Studies')
+@section('twitter_title', 'CodoVision Projects - Case Studies')
 @section('twitter_description', 'Real project outcomes across app, web, and enterprise software solutions.')
 
 @section('content')

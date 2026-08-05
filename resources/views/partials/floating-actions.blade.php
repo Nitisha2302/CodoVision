@@ -1,7 +1,7 @@
 <div class="floating-actions" aria-label="Quick contact actions">
     <span class="floating-hint blink-hint">Need help? Talk to us</span>
 
-    <a href="tel:+917973776933" class="fab fab-call" title="Call Trispark">
+    <a href="tel:+917973776933" class="fab fab-call" title="Call CodoVision">
         <span class="fab-icon">📞</span>
         <span class="fab-label">Call</span>
     </a>

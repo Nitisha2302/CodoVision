@@ -6,13 +6,12 @@
                     <img src="{{ asset('images/logo.png') }}" alt="logo">
                 </div>
                 <div class="logo-text">
-                    <h1>Trispark</h1>
-                    <h5>Software Solutions</h5>
+                    <h1>CodoVision</h1>
                 </div>
             </div>
             <p>Building innovative digital solutions that transform businesses.</p>
             <div class="footer-social">
-                <a href="https://www.linkedin.com/company/trisparksoftwaresolutions/" target="_blank" style="text-decoration: none; color: inherit;">
+                <a href="https://www.linkedin.com/company/codovisiontech/home/" target="_blank" style="text-decoration: none; color: inherit;">
                     <div class="social-icon">in</div>
                 </a>
                 <div class="social-icon">git</div>
@@ -46,8 +45,8 @@
             <h4>Get in Touch</h4>
             <div class="contact-item">
                 <span>✉</span>
-                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=trisparksoftwaresolutions@gmail.com" target="_blank" style="color: inherit; text-decoration: none;">
-                    trisparksoftwaresolutions@gmail.com
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=info@codovision.tech" target="_blank" style="color: inherit; text-decoration: none;">
+                    info@codovision.tech
                 </a>
             </div>
             <div class="contact-item">
@@ -63,6 +62,6 @@
         </div>
     </div>
     <div class="footer-bottom">
-        <p>© 2026 Trispark Software Solutions. All rights reserved.</p>
+        <p>© 2026 CodoVision. All rights reserved.</p>
     </div>
 </footer>

@@ -1,18 +1,18 @@
 @extends('layouts.app')
 
-@section('title', 'Trispark - About')
-@section('meta_description', 'Learn about Trispark Software Solutions, our mission, values, engineering approach, and commitment to delivering reliable digital products for business growth.')
+@section('title', 'CodoVision - About')
+@section('meta_description', 'Learn about CodoVision Software Solutions, our mission, values, engineering approach, and commitment to delivering reliable digital products for business growth.')
 @section('meta_keywords', 'about software company, IT company profile, software engineering team, product development company, digital transformation partner, software development agency India')
 @section('meta_canonical', url('/about'))
-@section('og_title', 'About Trispark - Software Engineering Partner')
-@section('og_description', 'Discover Trispark mission, delivery standards, and client-focused engineering approach.')
+@section('og_title', 'About CodoVision - Software Engineering Partner')
+@section('og_description', 'Discover CodoVision mission, delivery standards, and client-focused engineering approach.')
 @section('og_url', url('/about'))
-@section('twitter_title', 'About Trispark')
+@section('twitter_title', 'About CodoVision')
 @section('twitter_description', 'A professional software team focused on reliable product delivery and business outcomes.')
 
 @section('content')
 @include('partials.page-hero', [
-    'heroBadge' => 'About Trispark',
+    'heroBadge' => 'About CodoVision',
     'heroTitle' => 'Who We Are',
     'heroSubtitle' => 'A software team focused on practical digital transformation through design, engineering, and automation.',
     'heroImage' => 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1600&q=90',

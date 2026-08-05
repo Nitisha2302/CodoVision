@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Trispark - Data Admin')
+@section('title', 'CodoVision - Data Admin')
 
 @section('content')
 <section class="section" style="padding-top:150px;">

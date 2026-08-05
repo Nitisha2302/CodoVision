@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Trispark - Home')
-@section('meta_description', 'Professional app development agency for startups and businesses. Trispark builds scalable MVPs, marketplace apps, delivery platforms, and AI-powered mobile apps with fast execution.')
+@section('title', 'CodoVision - Home')
+@section('meta_description', 'Professional app development agency for startups and businesses. CodoVision builds scalable MVPs, marketplace apps, delivery platforms, and AI-powered mobile apps with fast execution.')
 @section('meta_keywords', 'software development company, IT company, web development company, mobile app development company, custom software development services, startup MVP development, marketplace app development, food delivery app development, logistics app development, healthcare app development, education app development, ecommerce development, SaaS development, flutter app development, react native development, laravel development company, AI app development, cloud deployment services, DevOps services, UI UX design services, enterprise software development, product engineering services, app maintenance and support')
 @section('meta_canonical', url('/'))
-@section('og_title', 'Trispark - Software Development & Mobile App Development Company')
-@section('og_description', 'Trispark builds scalable web and mobile apps, MVPs, and enterprise software for startups and businesses.')
+@section('og_title', 'CodoVision - Software Development & Mobile App Development Company')
+@section('og_description', 'CodoVision builds scalable web and mobile apps, MVPs, and enterprise software for startups and businesses.')
 @section('og_image', asset('images/logo.png'))
-@section('twitter_title', 'Trispark - Software Development & Mobile App Development Company')
+@section('twitter_title', 'CodoVision - Software Development & Mobile App Development Company')
 @section('twitter_description', 'Custom software, mobile apps, startup MVPs, and enterprise-grade digital product engineering.')
 @section('twitter_image', asset('images/logo.png'))
 @section('head_extras')
@@ -15,7 +15,7 @@
 {
   "@@context": "https://schema.org",
   "@@type": "ProfessionalService",
-  "name": "Trispark Software Solutions",
+  "name": "CodoVision",
   "url": "{{ url('/') }}",
   "description": "Startup MVP, mobile app, marketplace app, and AI integration development services.",
   "areaServed": "Global",
@@ -34,11 +34,11 @@
 {
   "@@context": "https://schema.org",
   "@@type": "Organization",
-  "name": "Trispark Software Solutions",
+  "name": "CodoVision",
   "url": "{{ url('/') }}",
   "logo": "{{ asset('images/logo.png') }}",
   "sameAs": [
-    "https://www.linkedin.com/company/trisparksoftwaresolutions/"
+    "https://www.linkedin.com/company/codovisiontech/home/"
   ]
 }
 </script>
@@ -46,7 +46,7 @@
 {
   "@@context": "https://schema.org",
   "@@type": "WebSite",
-  "name": "Trispark Software Solutions",
+  "name": "CodoVision",
   "url": "{{ url('/') }}"
 }
 </script>
@@ -234,7 +234,7 @@
 
 {{-- Quick value strip --}}
 <section class="trusted-section">
-    <p class="trusted-kicker">What You Get With Trispark</p>
+    <p class="trusted-kicker">What You Get With CodoVision</p>
     <div class="trusted-grid">
         <article class="trusted-item animate-on-scroll">
             <span class="trusted-dot"></span>
@@ -272,12 +272,12 @@
     <div class="about-showcase">
         <div class="about-visual-cluster animate-on-scroll">
             @foreach($aboutImages as $i => $img)
-                <img src="{{ asset($img) }}" alt="Trispark project showcase {{ $i + 1 }}" class="about-float-img about-float-{{ $i + 1 }}">
+                <img src="{{ asset($img) }}" alt="CodoVision project showcase {{ $i + 1 }}" class="about-float-img about-float-{{ $i + 1 }}">
             @endforeach
             <span class="about-visual-badge">Live Products</span>
         </div>
         <div class="about-copy animate-on-scroll">
-            <div class="section-badge">About Trispark</div>
+            <div class="section-badge">About CodoVision</div>
             <h2>Enhance Your Business with <span class="gradient-text">Smart Software</span></h2>
             <p class="section-subtitle about-lead">
                 We are a product engineering team helping startups and enterprises build mobile apps, web platforms, and automation systems — explained clearly, delivered on time.
@@ -531,7 +531,7 @@
 <section class="section why-section">
     <div class="why-layout">
         <div class="why-visual animate-on-scroll">
-            <img src="{{ asset('images/Hewie_Website.png') }}" alt="Trispark product dashboard" class="why-hero-img">
+            <img src="{{ asset('images/Hewie_Website.png') }}" alt="CodoVision product dashboard" class="why-hero-img">
             <div class="why-floating-card why-floating-a">
                 <strong>Weekly Updates</strong>
                 <span>Know exactly what was built</span>

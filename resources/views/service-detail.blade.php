@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Trispark - ' . $service['title'])
+@section('title', 'CodoVision - ' . $service['title'])
 
 @section('content')
 @php

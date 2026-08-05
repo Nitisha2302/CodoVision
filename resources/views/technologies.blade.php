@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Trispark - Technologies')
+@section('title', 'CodoVision - Technologies')
 
 @section('content')
 @include('partials.page-hero', [

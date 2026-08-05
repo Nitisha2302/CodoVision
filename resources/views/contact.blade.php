@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Trispark - Contact')
-@section('meta_description', 'Contact Trispark Software Solutions for web and mobile app development, MVP planning, software consulting, and project execution support.')
+@section('title', 'CodoVision - Contact')
+@section('meta_description', 'Contact CodoVision Software Solutions for web and mobile app development, MVP planning, software consulting, and project execution support.')
 @section('meta_keywords', 'contact software company, app development consultation, IT project quote, software consulting services, startup MVP consultation, web development contact')
 @section('meta_canonical', url('/contact'))
-@section('og_title', 'Contact Trispark - Start Your Software Project')
-@section('og_description', 'Get in touch with Trispark for app development, software solutions, and project consultation.')
+@section('og_title', 'Contact CodoVision - Start Your Software Project')
+@section('og_description', 'Get in touch with CodoVision for app development, software solutions, and project consultation.')
 @section('og_url', url('/contact'))
-@section('twitter_title', 'Contact Trispark')
+@section('twitter_title', 'Contact CodoVision')
 @section('twitter_description', 'Reach out for software project consultation, roadmap, and delivery planning.')
 
 @section('content')
@@ -24,8 +24,8 @@
             <div class="service-icon icon-blue">✉</div>
             <h3>Email</h3>
             <p>
-                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=trisparksoftwaresolutions@gmail.com" target="_blank" style="color: inherit; text-decoration: none;">
-                    trisparksoftwaresolutions@gmail.com
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=info@codovision.tech" target="_blank" style="color: inherit; text-decoration: none;">
+                    info@codovision.tech
                 </a>
             </p>
         </div>

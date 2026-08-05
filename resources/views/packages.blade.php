@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Trispark - Service Packages')
+@section('title', 'CodoVision - Service Packages')
 
 @section('content')
 @php
@@ -178,7 +178,7 @@
 <section class="section">
     <div class="section-header">
         <div class="section-badge">📊 Pricing Comparison</div>
-        <h2>Trispark vs Typical Platform Pricing</h2>
+        <h2>CodoVision vs Typical Platform Pricing</h2>
         <p class="section-subtitle">Transparent comparison to evaluate scope, quality, and delivery support.</p>
     </div>
 
@@ -189,7 +189,7 @@
                     <tr>
                         <th>Package</th>
                         <th>Technology Focus</th>
-                        <th>Trispark Price</th>
+                        <th>CodoVision Price</th>
                         <th>Typical Platform Range</th>
                         <th>Timeline</th>
                     </tr>

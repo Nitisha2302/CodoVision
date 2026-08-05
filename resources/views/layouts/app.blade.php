@@ -4,23 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="author" content="@yield('meta_author', 'Trispark Software Solutions')">
-    <meta name="description" content="@yield('meta_description', 'Trispark builds scalable mobile and web apps for startups and businesses.')">
+    <meta name="author" content="@yield('meta_author', 'CodoVision')">
+    <meta name="description" content="@yield('meta_description', 'CodoVision builds scalable mobile and web apps for startups and businesses.')">
     <meta name="keywords" content="@yield('meta_keywords', 'mobile app development, startup MVP development, marketplace app development, flutter app development, react native development, AI app integration')">
     <meta name="robots" content="index,follow">
     <meta name="googlebot" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">
     <link rel="canonical" href="@yield('meta_canonical', url()->current())">
     <meta property="og:type" content="@yield('og_type', 'website')">
-    <meta property="og:site_name" content="@yield('og_site_name', 'Trispark Software Solutions')">
-    <meta property="og:title" content="@yield('og_title', trim($__env->yieldContent('title', 'Trispark - Software Solutions')))">
-    <meta property="og:description" content="@yield('og_description', trim($__env->yieldContent('meta_description', 'Trispark builds scalable mobile and web apps for startups and businesses.')))">
+    <meta property="og:site_name" content="@yield('og_site_name', 'CodoVision')">
+    <meta property="og:title" content="@yield('og_title', trim($__env->yieldContent('title', 'CodoVision')))">
+    <meta property="og:description" content="@yield('og_description', trim($__env->yieldContent('meta_description', 'CodoVision builds scalable mobile and web apps for startups and businesses.')))">
     <meta property="og:url" content="@yield('og_url', url()->current())">
     <meta property="og:image" content="@yield('og_image', asset('images/logo.png'))">
     <meta name="twitter:card" content="@yield('twitter_card', 'summary_large_image')">
-    <meta name="twitter:title" content="@yield('twitter_title', trim($__env->yieldContent('title', 'Trispark - Software Solutions')))">
-    <meta name="twitter:description" content="@yield('twitter_description', trim($__env->yieldContent('meta_description', 'Trispark builds scalable mobile and web apps for startups and businesses.')))">
+    <meta name="twitter:title" content="@yield('twitter_title', trim($__env->yieldContent('title', 'CodoVision')))">
+    <meta name="twitter:description" content="@yield('twitter_description', trim($__env->yieldContent('meta_description', 'CosoVision builds scalable mobile and web apps for startups and businesses.')))">
     <meta name="twitter:image" content="@yield('twitter_image', asset('images/logo.png'))">
-    <title>@yield('title', 'Trispark - Software Solutions')</title>
+    <title>@yield('title', 'CodoVision')</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="icon" href="{{ asset('favicon_trispark.png') }}" type="image/x-icon">
     @yield('head_extras')
