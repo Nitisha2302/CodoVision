@@ -67,9 +67,7 @@
         </div>
     </div>
 </section>
-
 @include('partials.meeting-booking')
-
 <section class="section page-section">
     <div class="section-header animate-on-scroll">
         <div class="section-badge">What Happens Next</div>
