@@ -1,112 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'CodoVision | Software & Mobile App Development Company in Mohali')
-@section('meta_description', 'CodoVision is a software development company in Mohali, Punjab. We build scalable MVPs, marketplace apps, delivery platforms, web apps, and AI-powered mobile apps for startups and businesses.')
-@section('meta_keywords', 'CodoVision, CodoVision Tech, CodoVision Software Solutions, CodoVision Mohali, CodoVision Chandigarh, CodoVision Punjab, CodoVision India, CodoVision Sector 75, software development company Mohali, IT company Mohali, IT company Chandigarh, web development company Mohali, mobile app development company Mohali, app development company Punjab, custom software development India, startup MVP development, marketplace app development, food delivery app development, logistics app development, healthcare app development, education app development, ecommerce development, SaaS development company, Flutter app development, React Native development, Laravel development company, Next.js development, AI app development, AI software company India, cloud deployment services, DevOps services, UI UX design Mohali, enterprise software development, product engineering services, app maintenance and support, digital transformation company, software outsourcing India, hire app developers Mohali, best software company Mohali, software company near me Mohali')
+@section('title', 'CodoVision LLP | Software Development Company')
+@section('meta_description', 'CodoVision LLP is a software development company specializing in mobile app development, Flutter, Android, iOS, web development, AI, computer vision and custom software solutions.')
+@section('meta_keywords', 'CodoVision LLP, CodoVision, Raghav Tomar, Nitisha Goyal, software development company, Flutter app development, mobile app development, Android app development, iOS app development, web development, AI development, computer vision, custom software development, SaaS development, API development')
 @section('meta_canonical', url('/'))
-@section('og_title', 'CodoVision - Software Development & Mobile App Development Company')
-@section('og_description', 'CodoVision builds scalable web and mobile apps, MVPs, and enterprise software for startups and businesses from Mohali, Punjab.')
-@section('og_image', asset('images/logo.png'))
-@section('twitter_title', 'CodoVision - Software Development & Mobile App Development Company')
-@section('twitter_description', 'Custom software, mobile apps, startup MVPs, and enterprise-grade digital product engineering by CodoVision.')
-@section('twitter_image', asset('images/logo.png'))
-@section('head_extras')
-@php
-    $companyAddress = config('portfolio.company_address_parts');
-@endphp
-<script type="application/ld+json">
-{
-  "@@context": "https://schema.org",
-  "@@type": "ProfessionalService",
-  "name": "CodoVision",
-  "alternateName": ["CodoVision Tech", "CodoVision Software Solutions"],
-  "url": "{{ url('/') }}",
-  "description": "CodoVision provides startup MVP, mobile app, marketplace app, web development, and AI integration services in Mohali, Punjab.",
-  "image": "{{ asset('images/logo.png') }}",
-  "telephone": "{{ config('portfolio.company_phone') }}",
-  "email": "{{ config('portfolio.company_email') }}",
-  "areaServed": ["Global", "India", "Mohali", "Chandigarh", "Punjab"],
-  "address": {
-    "@@type": "PostalAddress",
-    "streetAddress": "{{ $companyAddress['street'] }}",
-    "addressLocality": "{{ $companyAddress['locality'] }}",
-    "addressRegion": "{{ $companyAddress['region'] }}",
-    "postalCode": "{{ $companyAddress['postal'] }}",
-    "addressCountry": "{{ $companyAddress['country'] }}"
-  },
-  "serviceType": [
-    "Startup MVP Development",
-    "Marketplace App Development",
-    "Delivery App Development",
-    "AI App Development",
-    "Web Development",
-    "Mobile App Development",
-    "Enterprise Software Development",
-    "UI UX Design",
-    "SaaS Development"
-  ],
-  "keywords": "CodoVision, software development company Mohali, mobile app development, web development, MVP development"
-}
-</script>
-<script type="application/ld+json">
-{
-  "@@context": "https://schema.org",
-  "@@type": "Organization",
-  "name": "CodoVision",
-  "alternateName": ["CodoVision Tech", "CodoVision Software Solutions"],
-  "url": "{{ url('/') }}",
-  "logo": "{{ asset('images/logo.png') }}",
-  "email": "{{ config('portfolio.company_email') }}",
-  "telephone": "{{ config('portfolio.company_phone') }}",
-  "address": {
-    "@@type": "PostalAddress",
-    "streetAddress": "{{ $companyAddress['street'] }}",
-    "addressLocality": "{{ $companyAddress['locality'] }}",
-    "addressRegion": "{{ $companyAddress['region'] }}",
-    "postalCode": "{{ $companyAddress['postal'] }}",
-    "addressCountry": "{{ $companyAddress['country'] }}"
-  },
-  "sameAs": [
-    "https://www.linkedin.com/company/codovisiontech/home/"
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@@context": "https://schema.org",
-  "@@type": "LocalBusiness",
-  "name": "CodoVision",
-  "image": "{{ asset('images/logo.png') }}",
-  "url": "{{ url('/') }}",
-  "telephone": "{{ config('portfolio.company_phone') }}",
-  "email": "{{ config('portfolio.company_email') }}",
-  "priceRange": "$$",
-  "address": {
-    "@@type": "PostalAddress",
-    "streetAddress": "{{ $companyAddress['street'] }}",
-    "addressLocality": "{{ $companyAddress['locality'] }}",
-    "addressRegion": "{{ $companyAddress['region'] }}",
-    "postalCode": "{{ $companyAddress['postal'] }}",
-    "addressCountry": "{{ $companyAddress['country'] }}"
-  },
-  "openingHoursSpecification": {
-    "@@type": "OpeningHoursSpecification",
-    "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-    "opens": "10:00",
-    "closes": "19:00"
-  }
-}
-</script>
-<script type="application/ld+json">
-{
-  "@@context": "https://schema.org",
-  "@@type": "WebSite",
-  "name": "CodoVision",
-  "alternateName": "CodoVision Tech",
-  "url": "{{ url('/') }}"
-}
-</script>
-@endsection
+@section('og_title', 'CodoVision LLP | Software Development Company')
+@section('og_description', 'CodoVision LLP builds mobile apps, Flutter products, web platforms, AI solutions, and custom software for startups and growing businesses.')
+@section('og_url', url('/'))
+@section('og_image', url('/images/logo.png'))
+@section('twitter_title', 'CodoVision LLP | Software Development Company')
+@section('twitter_description', 'Mobile apps, Flutter, web development, AI, computer vision, and custom software by CodoVision LLP.')
+@section('twitter_image', url('/images/logo.png'))
 
 @section('content')
 @php

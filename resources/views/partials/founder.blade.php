@@ -11,7 +11,7 @@
 
         <div class="founder-media">
             <div class="founder-frame">
-                <img src="{{ $founderImage }}" alt="{{ $founderName }}, {{ $founderRole }} of CodoVision" loading="lazy">
+                <img src="{{ $founderImage }}" alt="{{ $founderName }}, {{ $founderRole }} of CodoVision LLP" loading="lazy">
                 <span class="founder-frame-ring" aria-hidden="true"></span>
             </div>
             <div class="founder-badge-float">

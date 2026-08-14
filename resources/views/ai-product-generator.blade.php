@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('title', 'CodoVision - AI Product Generator')
+@section('meta_robots', 'noindex,nofollow')
+@section('meta_description', 'Private CodoVision LLP AI product generator.')
+@section('meta_canonical', url('/data/ai-product-generator'))
 
 @section('content')
 <section class="section ai-generator-page" style="padding-top:150px;">

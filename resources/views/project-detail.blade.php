@@ -1,9 +1,30 @@
 @extends('layouts.app')
 
-@section('title', 'CodoVision - ' . $project['title'] . ' | Case Study')
-@section('meta_description', 'CodoVision case study: ' . $project['title'] . '. ' . \Illuminate\Support\Str::limit(strip_tags($project['description'] ?? ''), 140))
-@section('meta_keywords', 'CodoVision ' . $project['title'] . ', CodoVision projects, CodoVision case study, software development portfolio Mohali, app development case study India, ' . implode(', ', $project['tags'] ?? []))
-@section('meta_canonical', url('/projects/' . $project['slug']))
+@php
+    $projectSeoTitle = $project['title'] . ' Case Study | CodoVision LLP';
+    $projectSeoDescription = 'CodoVision LLP case study: ' . $project['title'] . '. '
+        . \Illuminate\Support\Str::limit(strip_tags($project['description'] ?? ''), 140);
+    $projectCanonical = url('/projects/' . $project['slug']);
+@endphp
+
+@section('title', $projectSeoTitle)
+@section('meta_description', $projectSeoDescription)
+@section('meta_keywords', 'CodoVision LLP, ' . $project['title'] . ', software case study, ' . implode(', ', $project['tags'] ?? []))
+@section('meta_canonical', $projectCanonical)
+@section('og_title', $projectSeoTitle)
+@section('og_description', $projectSeoDescription)
+@section('og_url', $projectCanonical)
+@section('og_image', url('/images/logo.png'))
+@section('twitter_title', $projectSeoTitle)
+@section('twitter_description', $projectSeoDescription)
+@section('twitter_image', url('/images/logo.png'))
+@section('head_extras')
+<x-seo-breadcrumbs :items="[
+    ['name' => 'Home', 'url' => url('/')],
+    ['name' => 'Projects', 'url' => url('/projects')],
+    ['name' => $project['title'], 'url' => $projectCanonical],
+]" />
+@endsection
 
 @section('content')
 @php

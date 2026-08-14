@@ -1,37 +1,31 @@
 @extends('layouts.app')
 
-@section('title', 'Contact CodoVision | Software Company Mohali Punjab')
-@section('meta_description', 'Contact CodoVision Software Solutions at F547 PH-8A Industrial Area, Sector 75, Mohali. Get quotes for web development, mobile app development, MVP planning, and software consulting.')
-@section('meta_keywords', 'contact CodoVision, CodoVision Mohali, CodoVision address, CodoVision Sector 75, software company Mohali contact, app development consultation Mohali, IT project quote Punjab, software consulting CodoVision, startup MVP consultation Mohali, web development contact Chandigarh, CodoVision phone, info@codovision.tech')
+@section('title', 'Contact CodoVision LLP | Software Development Company')
+@section('meta_description', 'Contact CodoVision LLP at info@codovision.tech for mobile app development, Flutter, web development, AI solutions, and custom software consulting.')
+@section('meta_keywords', 'contact CodoVision LLP, CodoVision LLP, info@codovision.tech, software company contact, app development consultation')
 @section('meta_canonical', url('/contact'))
-@section('og_title', 'Contact CodoVision - Start Your Software Project')
-@section('og_description', 'Get in touch with CodoVision in Mohali for app development, software solutions, and project consultation.')
+@section('og_title', 'Contact CodoVision LLP')
+@section('og_description', 'Get in touch with CodoVision LLP for software project consultation and delivery planning.')
 @section('og_url', url('/contact'))
-@section('twitter_title', 'Contact CodoVision')
-@section('twitter_description', 'Reach out for software project consultation, roadmap, and delivery planning in Mohali.')
+@section('og_image', url('/images/logo.png'))
+@section('twitter_title', 'Contact CodoVision LLP')
+@section('twitter_description', 'Reach out for software project consultation and roadmap planning.')
+@section('twitter_image', url('/images/logo.png'))
 @section('head_extras')
-@php $companyAddress = config('portfolio.company_address_parts'); @endphp
+<x-seo-breadcrumbs :items="[
+    ['name' => 'Home', 'url' => url('/')],
+    ['name' => 'Contact', 'url' => url('/contact')],
+]" />
 <script type="application/ld+json">
-{
-  "@@context": "https://schema.org",
-  "@@type": "ContactPage",
-  "name": "Contact CodoVision",
-  "url": "{{ url('/contact') }}",
-  "mainEntity": {
-    "@@type": "Organization",
-    "name": "CodoVision",
-    "email": "{{ config('portfolio.company_email') }}",
-    "telephone": "{{ config('portfolio.company_phone') }}",
-    "address": {
-      "@@type": "PostalAddress",
-      "streetAddress": "{{ $companyAddress['street'] }}",
-      "addressLocality": "{{ $companyAddress['locality'] }}",
-      "addressRegion": "{{ $companyAddress['region'] }}",
-      "postalCode": "{{ $companyAddress['postal'] }}",
-      "addressCountry": "{{ $companyAddress['country'] }}"
-    }
-  }
-}
+{!! json_encode([
+    '@context' => 'https://schema.org',
+    '@type' => 'ContactPage',
+    'name' => 'Contact CodoVision LLP',
+    'url' => url('/contact'),
+    'mainEntity' => [
+        '@id' => 'https://codovision.tech/#organization',
+    ],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 

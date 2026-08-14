@@ -1,2 +1,15 @@
 User-agent: *
-Disallow:
+Allow: /
+
+Disallow: /data
+Disallow: /data/
+Disallow: /crm
+Disallow: /crm/
+Disallow: /tools
+Disallow: /tools/
+Disallow: /chatbot/
+Disallow: /book-package
+Disallow: /book-meeting
+Disallow: /reviews/submit
+
+Sitemap: https://codovision.tech/sitemap.xml

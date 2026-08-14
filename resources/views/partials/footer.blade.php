@@ -3,7 +3,7 @@
         <div class="footer-about">
             <div class="logo">
                 <div class="logo-icon">
-                    <img src="{{ asset('images/logo.png') }}" alt="CodoVision">
+                    <img src="{{ asset('images/logo.png') }}" alt="CodoVision LLP">
                 </div>
                 <div class="logo-text">
                     <h1>CodoVision</h1>
@@ -11,7 +11,7 @@
             </div>
             <p>Building innovative digital solutions that transform businesses.</p>
             <div class="footer-social">
-                <a href="https://www.linkedin.com/company/codovisiontech/home/" target="_blank" style="text-decoration: none; color: inherit;">
+                <a href="https://www.linkedin.com/company/codovisiontech/" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;">
                     <div class="social-icon">in</div>
                 </a>
                 <div class="social-icon">git</div>
@@ -33,10 +33,10 @@
         <div class="footer-links">
             <h4>Services</h4>
             <ul>
-                <li><a href="{{ route('services') }}">Web Development</a></li>
-                <li><a href="{{ route('services') }}">Mobile Apps</a></li>
-                <li><a href="{{ route('services') }}">UI/UX Design</a></li>
-                <li><a href="{{ route('services') }}">Automation</a></li>
+                <li><a href="{{ route('services.detail', 'web-development') }}">Web Development</a></li>
+                <li><a href="{{ route('services.detail', 'mobile-app-development') }}">Mobile Apps</a></li>
+                <li><a href="{{ route('services.detail', 'ui-ux-design') }}">UI/UX Design</a></li>
+                <li><a href="{{ route('services.detail', 'automation-solutions') }}">Automation</a></li>
                 <li><a href="{{ route('contact') }}">Consulting</a></li>
             </ul>
         </div>

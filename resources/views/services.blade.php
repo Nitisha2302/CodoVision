@@ -1,14 +1,22 @@
 @extends('layouts.app')
 
-@section('title', 'CodoVision Services | Web, Mobile App & Software Development')
-@section('meta_description', 'Explore CodoVision software development services in Mohali including web development, mobile app development, UI UX design, AI solutions, and automation for startups and businesses.')
-@section('meta_keywords', 'CodoVision services, CodoVision software development, web development services Mohali, mobile app development services Mohali, UI UX design company Mohali, automation solutions, custom software development India, Flutter development services, React Native app development, Laravel development services, AI development services, SaaS development services, CodoVision Tech services')
+@section('title', 'Software Development Services | CodoVision LLP')
+@section('meta_description', 'Explore CodoVision LLP services including web development, mobile app development, Flutter, UI/UX design, AI solutions, and automation for startups and businesses.')
+@section('meta_keywords', 'CodoVision LLP services, software development services, mobile app development, web development, Flutter, AI development, UI UX design, custom software')
 @section('meta_canonical', url('/services'))
-@section('og_title', 'CodoVision Services - Web, Mobile, UI UX, Automation')
-@section('og_description', 'End-to-end software development services for modern digital products.')
+@section('og_title', 'Software Development Services | CodoVision LLP')
+@section('og_description', 'End-to-end software development services for modern digital products by CodoVision LLP.')
 @section('og_url', url('/services'))
-@section('twitter_title', 'CodoVision Services - Software Development')
-@section('twitter_description', 'Web, mobile, design, and automation services delivered with quality and speed.')
+@section('og_image', url('/images/logo.png'))
+@section('twitter_title', 'Software Development Services | CodoVision LLP')
+@section('twitter_description', 'Web, mobile, design, AI, and automation services from CodoVision LLP.')
+@section('twitter_image', url('/images/logo.png'))
+@section('head_extras')
+<x-seo-breadcrumbs :items="[
+    ['name' => 'Home', 'url' => url('/')],
+    ['name' => 'Services', 'url' => url('/services')],
+]" />
+@endsection
 
 @section('content')
 @include('partials.page-hero', [

@@ -3,7 +3,17 @@
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\DataController;
 use App\Http\Controllers\AiProductGeneratorController;
+use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/robots.txt', function () {
+    $path = public_path('robots.txt');
+    abort_unless(is_file($path), 404);
+
+    return response(file_get_contents($path), 200)
+        ->header('Content-Type', 'text/plain; charset=UTF-8');
+})->name('robots');
 
 Route::get('/', function () {
     $reviewsFromFile = [];

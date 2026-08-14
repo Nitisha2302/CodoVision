@@ -1,9 +1,22 @@
 @extends('layouts.app')
 
-@section('title', 'CodoVision Process | How We Build Software Products')
-@section('meta_description', 'Discover the CodoVision software development process — discovery, design, development, and launch with clear milestones for startups and businesses.')
-@section('meta_keywords', 'CodoVision process, CodoVision delivery model, software development process Mohali, agile software development India, MVP development process, product engineering process, app development methodology, CodoVision workflow, software project lifecycle')
+@section('title', 'Software Development Process | CodoVision LLP')
+@section('meta_description', 'Discover how CodoVision LLP builds software — discovery, design, development, and launch with clear milestones for startups and businesses.')
+@section('meta_keywords', 'CodoVision LLP process, software development process, MVP development, product engineering, app development methodology')
 @section('meta_canonical', url('/process'))
+@section('og_title', 'Software Development Process | CodoVision LLP')
+@section('og_description', 'A clear delivery model from discovery to launch by CodoVision LLP.')
+@section('og_url', url('/process'))
+@section('og_image', url('/images/logo.png'))
+@section('twitter_title', 'Software Development Process | CodoVision LLP')
+@section('twitter_description', 'Discovery, design, development, and launch — how CodoVision LLP delivers.')
+@section('twitter_image', url('/images/logo.png'))
+@section('head_extras')
+<x-seo-breadcrumbs :items="[
+    ['name' => 'Home', 'url' => url('/')],
+    ['name' => 'Process', 'url' => url('/process')],
+]" />
+@endsection
 
 @section('content')
 @include('partials.page-hero', [

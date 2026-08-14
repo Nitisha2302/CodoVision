@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('title', 'CodoVision - Data Admin')
+@section('meta_robots', 'noindex,nofollow')
+@section('meta_description', 'Private CodoVision LLP admin area.')
+@section('meta_canonical', url('/data'))
 
 @section('content')
 <section class="section" style="padding-top:150px;">

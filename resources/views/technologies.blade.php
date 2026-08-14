@@ -1,9 +1,22 @@
 @extends('layouts.app')
 
-@section('title', 'CodoVision Technologies | Flutter, React Native, Java, Kotlin & More')
-@section('meta_description', 'Explore the CodoVision technology stack — Flutter, React Native, Java, Kotlin, Laravel, Next.js, AI integrations, cloud, and DevOps tools used to build scalable products.')
-@section('meta_keywords', 'CodoVision technologies, Flutter development Mohali, React Native company India, Java Android development, Kotlin app development, Laravel developers Mohali, Next.js development, AI integration services, mobile app technology stack, CodoVision Software Solutions technology')
+@section('title', 'Technologies We Use | CodoVision LLP')
+@section('meta_description', 'Explore the CodoVision LLP technology stack — Flutter, React Native, Java, Kotlin, Laravel, Next.js, AI integrations, cloud, and DevOps tools.')
+@section('meta_keywords', 'CodoVision LLP technologies, Flutter, React Native, Laravel, Next.js, AI integration, mobile app technology stack')
 @section('meta_canonical', url('/technologies'))
+@section('og_title', 'Technologies We Use | CodoVision LLP')
+@section('og_description', 'Flutter, React Native, Laravel, Next.js, AI, cloud, and DevOps — the CodoVision LLP stack.')
+@section('og_url', url('/technologies'))
+@section('og_image', url('/images/logo.png'))
+@section('twitter_title', 'Technologies We Use | CodoVision LLP')
+@section('twitter_description', 'Modern mobile, web, AI, and cloud technologies used by CodoVision LLP.')
+@section('twitter_image', url('/images/logo.png'))
+@section('head_extras')
+<x-seo-breadcrumbs :items="[
+    ['name' => 'Home', 'url' => url('/')],
+    ['name' => 'Technologies', 'url' => url('/technologies')],
+]" />
+@endsection
 
 @section('content')
 @php

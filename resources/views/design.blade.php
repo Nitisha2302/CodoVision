@@ -10,14 +10,23 @@
     ];
 @endphp
 
-@section('title', 'CodoVision Design Studio | AR, VR & Visual Experience')
-@section('meta_description', 'CodoVision immersive design showcase: AR, VR, graphics, imagery, motion, and spatial visual experiences crafted for modern digital brands.')
-@section('meta_keywords', 'CodoVision design, CodoVision design studio, AR design Mohali, VR design India, graphic design company Mohali, motion graphics, 3D visuals, brand design, immersive experience design, UI UX visual design, CodoVision creative studio')
+@section('title', 'Design Studio | CodoVision LLP')
+@section('meta_description', 'CodoVision LLP immersive design showcase: AR, VR, graphics, imagery, motion, and spatial visual experiences for modern digital brands.')
+@section('meta_keywords', 'CodoVision LLP design, AR design, VR design, motion graphics, immersive experience design, UI UX visual design')
 @section('meta_canonical', url('/design'))
-@section('og_title', 'CodoVision Design Studio — AR, VR & Visual Experience')
-@section('og_description', 'Explore CodoVision design expanded through AR, VR, imagery, animation, and immersive visual experiences.')
+@section('og_title', 'Design Studio | CodoVision LLP')
+@section('og_description', 'Explore CodoVision LLP design through AR, VR, imagery, animation, and immersive visual experiences.')
+@section('og_url', url('/design'))
+@section('og_image', url('/images/logo.png'))
+@section('twitter_title', 'Design Studio | CodoVision LLP')
+@section('twitter_description', 'AR, VR, motion, and immersive visual experiences by CodoVision LLP.')
+@section('twitter_image', url('/images/logo.png'))
 
 @section('head_extras')
+<x-seo-breadcrumbs :items="[
+    ['name' => 'Home', 'url' => url('/')],
+    ['name' => 'Design', 'url' => url('/design')],
+]" />
 <link rel="preload" href="{{ $designVideos['experience'] }}" as="video" type="video/mp4">
 <link rel="stylesheet" href="{{ asset('css/design.css') }}?v=5">
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" defer></script>

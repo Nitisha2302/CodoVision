@@ -8,6 +8,8 @@ ini_set('max_execution_time', 300);
 <head>
 
 <title>Tools Page</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="googlebot" content="noindex,nofollow">
 
 <style>
 

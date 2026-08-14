@@ -4,29 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="author" content="@yield('meta_author', 'CodoVision')">
-    <meta name="description" content="@yield('meta_description', 'CodoVision is a software development company in Mohali building scalable mobile apps, web apps, MVPs, and enterprise software for startups and businesses.')">
-    <meta name="keywords" content="@yield('meta_keywords', 'CodoVision, CodoVision Tech, CodoVision Software Solutions, CodoVision Mohali, CodoVision Chandigarh, CodoVision Punjab, software development company Mohali, IT company Mohali, mobile app development company Mohali, web development company Mohali, custom software development India, startup MVP development, Flutter app development, React Native development, Laravel development company, AI app development, SaaS development, UI UX design Mohali, enterprise software development, product engineering services')">
-    <meta name="robots" content="index,follow">
-    <meta name="googlebot" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">
-    <meta name="geo.region" content="IN-PB">
-    <meta name="geo.placename" content="Mohali">
-    <meta name="geo.position" content="30.7046;76.7179">
-    <meta name="ICBM" content="30.7046, 76.7179">
-    <link rel="canonical" href="@yield('meta_canonical', url()->current())">
-    <meta property="og:type" content="@yield('og_type', 'website')">
-    <meta property="og:site_name" content="@yield('og_site_name', 'CodoVision')">
-    <meta property="og:title" content="@yield('og_title', trim($__env->yieldContent('title', 'CodoVision')))">
-    <meta property="og:description" content="@yield('og_description', trim($__env->yieldContent('meta_description', 'CodoVision builds scalable mobile and web apps for startups and businesses.')))">
-    <meta property="og:url" content="@yield('og_url', url()->current())">
-    <meta property="og:image" content="@yield('og_image', asset('images/logo.png'))">
-    <meta name="twitter:card" content="@yield('twitter_card', 'summary_large_image')">
-    <meta name="twitter:title" content="@yield('twitter_title', trim($__env->yieldContent('title', 'CodoVision')))">
-    <meta name="twitter:description" content="@yield('twitter_description', trim($__env->yieldContent('meta_description', 'CodoVision builds scalable mobile and web apps for startups and businesses.')))">
-    <meta name="twitter:image" content="@yield('twitter_image', asset('images/logo.png'))">
-    <title>@yield('title', 'CodoVision')</title>
+    @php
+        $__seoTitle = trim($__env->yieldContent('title'));
+        $__seoDescription = trim($__env->yieldContent('meta_description'));
+        $__seoCanonical = trim($__env->yieldContent('meta_canonical'));
+        $__seoRobots = trim($__env->yieldContent('meta_robots'));
+        $__seoKeywords = trim($__env->yieldContent('meta_keywords'));
+        $__seoOgTitle = trim($__env->yieldContent('og_title'));
+        $__seoOgDescription = trim($__env->yieldContent('og_description'));
+        $__seoOgUrl = trim($__env->yieldContent('og_url'));
+        $__seoOgImage = trim($__env->yieldContent('og_image'));
+        $__seoOgType = trim($__env->yieldContent('og_type'));
+        $__seoTwitterTitle = trim($__env->yieldContent('twitter_title'));
+        $__seoTwitterDescription = trim($__env->yieldContent('twitter_description'));
+        $__seoTwitterImage = trim($__env->yieldContent('twitter_image'));
+        $__seoTwitterCard = trim($__env->yieldContent('twitter_card'));
+        $__seoAuthor = trim($__env->yieldContent('meta_author'));
+        $__seoNoIndex = filled($__seoRobots) && str_contains($__seoRobots, 'noindex');
+    @endphp
+    <x-seo
+        :title="$__seoTitle !== '' ? $__seoTitle : null"
+        :description="$__seoDescription !== '' ? $__seoDescription : null"
+        :canonical="$__seoCanonical !== '' ? $__seoCanonical : null"
+        :robots="$__seoRobots !== '' ? $__seoRobots : null"
+        :keywords="$__seoKeywords !== '' ? $__seoKeywords : null"
+        :author="$__seoAuthor !== '' ? $__seoAuthor : null"
+        :og-title="$__seoOgTitle !== '' ? $__seoOgTitle : null"
+        :og-description="$__seoOgDescription !== '' ? $__seoOgDescription : null"
+        :og-url="$__seoOgUrl !== '' ? $__seoOgUrl : null"
+        :og-image="$__seoOgImage !== '' ? $__seoOgImage : null"
+        :og-type="$__seoOgType !== '' ? $__seoOgType : 'website'"
+        :twitter-title="$__seoTwitterTitle !== '' ? $__seoTwitterTitle : null"
+        :twitter-description="$__seoTwitterDescription !== '' ? $__seoTwitterDescription : null"
+        :twitter-image="$__seoTwitterImage !== '' ? $__seoTwitterImage : null"
+        :twitter-card="$__seoTwitterCard !== '' ? $__seoTwitterCard : null"
+    />
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="icon" href="{{ asset('favicon_codovision.png') }}" type="image/png">
+    @unless($__seoNoIndex)
+        @include('partials.structured-data')
+    @endunless
     @yield('head_extras')
 </head>
 <body>

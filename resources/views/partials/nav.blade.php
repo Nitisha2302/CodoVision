@@ -12,7 +12,7 @@
 
         <a href="{{ route('home') }}" class="logo" aria-label="CodoVision home">
             <div class="logo-icon">
-                <img src="{{ asset('images/logo.png') }}" alt="CodoVision">
+                <img src="{{ asset('images/logo.png') }}" alt="CodoVision LLP">
             </div>
             <div class="logo-text">
                 <h1>CodoVision</h1>

@@ -1,9 +1,44 @@
 @extends('layouts.app')
 
-@section('title', 'CodoVision - ' . $service['title'] . ' | Software Services Mohali')
-@section('meta_description', 'CodoVision offers ' . $service['title'] . ' in Mohali, Punjab. ' . \Illuminate\Support\Str::limit(strip_tags($service['description'] ?? $service['summary'] ?? ''), 140))
-@section('meta_keywords', 'CodoVision ' . $service['title'] . ', ' . $service['title'] . ' Mohali, ' . $service['title'] . ' India, CodoVision services, software development company Mohali, app development company Punjab, CodoVision Tech')
-@section('meta_canonical', url('/services/' . $service['slug']))
+@php
+    $serviceSeoTitle = config('seo.service_titles.' . $service['slug'])
+        ?: ($service['title'] . ' Company | CodoVision LLP');
+    $serviceSeoDescription = 'CodoVision LLP offers ' . $service['title'] . '. '
+        . \Illuminate\Support\Str::limit(strip_tags($service['description'] ?? $service['summary'] ?? ''), 140);
+    $serviceCanonical = url('/services/' . $service['slug']);
+@endphp
+
+@section('title', $serviceSeoTitle)
+@section('meta_description', $serviceSeoDescription)
+@section('meta_keywords', 'CodoVision LLP, ' . $service['title'] . ', software development company, ' . $service['title'] . ' company')
+@section('meta_canonical', $serviceCanonical)
+@section('og_title', $serviceSeoTitle)
+@section('og_description', $serviceSeoDescription)
+@section('og_url', $serviceCanonical)
+@section('og_image', url('/images/logo.png'))
+@section('twitter_title', $serviceSeoTitle)
+@section('twitter_description', $serviceSeoDescription)
+@section('twitter_image', url('/images/logo.png'))
+@section('head_extras')
+<x-seo-breadcrumbs :items="[
+    ['name' => 'Home', 'url' => url('/')],
+    ['name' => 'Services', 'url' => url('/services')],
+    ['name' => $service['title'], 'url' => $serviceCanonical],
+]" />
+<script type="application/ld+json">
+{!! json_encode([
+    '@context' => 'https://schema.org',
+    '@type' => 'Service',
+    'name' => $service['title'],
+    'description' => strip_tags($service['description'] ?? $service['summary'] ?? ''),
+    'url' => $serviceCanonical,
+    'provider' => [
+        '@id' => 'https://codovision.tech/#organization',
+    ],
+    'areaServed' => 'IN',
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
+</script>
+@endsection
 
 @section('content')
 @php

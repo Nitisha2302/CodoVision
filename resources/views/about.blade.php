@@ -1,14 +1,22 @@
 @extends('layouts.app')
 
-@section('title', 'About CodoVision | Software Engineering Company in Mohali')
-@section('meta_description', 'Learn about CodoVision Software Solutions in Mohali — our mission, values, engineering approach, and commitment to delivering reliable digital products for business growth.')
-@section('meta_keywords', 'about CodoVision, CodoVision company profile, CodoVision Software Solutions, CodoVision Mohali, CodoVision team, software engineering team Mohali, IT company profile Punjab, product development company India, digital transformation partner, software development agency India, best IT company Mohali')
+@section('title', 'About CodoVision LLP | Raghav Tomar & Nitisha Goyal')
+@section('meta_description', 'Learn about CodoVision LLP, a software development company founded by Raghav Tomar and Nitisha Goyal. We build mobile apps, web platforms, AI solutions, and custom software.')
+@section('meta_keywords', 'About CodoVision LLP, CodoVision LLP, Raghav Tomar, Nitisha Goyal, Raghav Tomar CodoVision, Nitisha Goyal CodoVision, software development company')
 @section('meta_canonical', url('/about'))
-@section('og_title', 'About CodoVision - Software Engineering Partner')
-@section('og_description', 'Discover CodoVision mission, delivery standards, and client-focused engineering approach.')
+@section('og_title', 'About CodoVision LLP | Founders Raghav Tomar & Nitisha Goyal')
+@section('og_description', 'CodoVision LLP is led by founders Raghav Tomar and Nitisha Goyal, delivering reliable software products for startups and businesses.')
 @section('og_url', url('/about'))
-@section('twitter_title', 'About CodoVision')
-@section('twitter_description', 'A professional software team focused on reliable product delivery and business outcomes.')
+@section('og_image', url('/images/logo.png'))
+@section('twitter_title', 'About CodoVision LLP')
+@section('twitter_description', 'Meet CodoVision LLP and founders Raghav Tomar and Nitisha Goyal.')
+@section('twitter_image', url('/images/logo.png'))
+@section('head_extras')
+<x-seo-breadcrumbs :items="[
+    ['name' => 'Home', 'url' => url('/')],
+    ['name' => 'About', 'url' => url('/about')],
+]" />
+@endsection
 
 @section('content')
 @include('partials.page-hero', [

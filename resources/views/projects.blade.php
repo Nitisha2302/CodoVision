@@ -1,14 +1,22 @@
 @extends('layouts.app')
 
-@section('title', 'CodoVision Projects | Software & App Development Portfolio')
-@section('meta_description', 'View CodoVision project portfolio and case studies across mobile apps, web platforms, logistics, healthcare, education, and enterprise software delivery.')
-@section('meta_keywords', 'CodoVision projects, CodoVision portfolio, CodoVision case studies, software development portfolio Mohali, mobile app case studies, web development projects India, IT company portfolio, app development examples, logistics software project, healthcare app case study, enterprise software case studies, CodoVision work')
+@section('title', 'Projects & Portfolio | CodoVision LLP')
+@section('meta_description', 'View CodoVision LLP project portfolio and case studies across mobile apps, web platforms, healthcare, education, and enterprise software delivery.')
+@section('meta_keywords', 'CodoVision LLP projects, software portfolio, app development case studies, web development projects, CodoVision LLP work')
 @section('meta_canonical', url('/projects'))
-@section('og_title', 'CodoVision Projects - Real Software Case Studies')
-@section('og_description', 'Explore real-world software projects delivered by CodoVision for startups and enterprises.')
+@section('og_title', 'Projects & Portfolio | CodoVision LLP')
+@section('og_description', 'Explore real-world software projects delivered by CodoVision LLP for startups and enterprises.')
 @section('og_url', url('/projects'))
-@section('twitter_title', 'CodoVision Projects - Case Studies')
+@section('og_image', url('/images/logo.png'))
+@section('twitter_title', 'Projects & Portfolio | CodoVision LLP')
 @section('twitter_description', 'Real project outcomes across app, web, and enterprise software solutions.')
+@section('twitter_image', url('/images/logo.png'))
+@section('head_extras')
+<x-seo-breadcrumbs :items="[
+    ['name' => 'Home', 'url' => url('/')],
+    ['name' => 'Projects', 'url' => url('/projects')],
+]" />
+@endsection
 
 @section('content')
 @include('partials.page-hero', [

@@ -1,9 +1,22 @@
 @extends('layouts.app')
 
-@section('title', 'CodoVision Service Packages | Affordable App & Web Pricing')
-@section('meta_description', 'Compare CodoVision service packages for web, mobile, and software development. Transparent pricing for startups and businesses in Mohali and across India.')
-@section('meta_keywords', 'CodoVision packages, CodoVision pricing, app development cost Mohali, web development packages India, software development pricing, MVP development cost, Flutter app package, mobile app development packages, CodoVision service plans')
+@section('title', 'Service Packages & Pricing | CodoVision LLP')
+@section('meta_description', 'Compare CodoVision LLP service packages for web, mobile, and software development. Clear package options for startups and growing businesses.')
+@section('meta_keywords', 'CodoVision LLP packages, app development packages, web development packages, software development pricing, MVP packages')
 @section('meta_canonical', url('/packages'))
+@section('og_title', 'Service Packages & Pricing | CodoVision LLP')
+@section('og_description', 'Transparent service packages for web, mobile, and custom software from CodoVision LLP.')
+@section('og_url', url('/packages'))
+@section('og_image', url('/images/logo.png'))
+@section('twitter_title', 'Service Packages & Pricing | CodoVision LLP')
+@section('twitter_description', 'Compare web, mobile, and software packages from CodoVision LLP.')
+@section('twitter_image', url('/images/logo.png'))
+@section('head_extras')
+<x-seo-breadcrumbs :items="[
+    ['name' => 'Home', 'url' => url('/')],
+    ['name' => 'Packages', 'url' => url('/packages')],
+]" />
+@endsection
 
 @section('content')
 @php
