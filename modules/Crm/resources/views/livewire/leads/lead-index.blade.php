@@ -7,7 +7,7 @@
             <p class="crm-muted" style="margin:4px 0 0;">Search, filter, and manage your pipeline.</p>
         </div>
         <div class="crm-actions">
-            <a class="crm-btn crm-btn-secondary" href="{{ route('crm.leads.kanban') }}">Kanban</a>
+            <a class="crm-btn crm-btn-secondary" href="{{ route('crm.leads.kanban') }}">Pipeline</a>
             @if($canExport)
                 <button class="crm-btn crm-btn-secondary" wire:click="export" type="button">Export CSV</button>
             @endif
@@ -15,7 +15,7 @@
         </div>
     </div>
 
-    <div class="crm-card" style="margin-bottom:14px;">
+    <div class="crm-card crm-leads-filters" style="margin-bottom:14px;">
         <div class="crm-grid crm-grid-4">
             <div class="crm-field" style="margin:0;"><label class="crm-label">Search</label><input class="crm-input" wire:model.live.debounce.300ms="search" placeholder="Name, email, phone, company, code"></div>
             <div class="crm-field" style="margin:0;"><label class="crm-label">Status</label>
@@ -30,8 +30,11 @@
         </div>
     </div>
 
-    <div class="crm-card">
-        <table class="crm-table">
+    @include('crm::partials.date-filter', ['dateFilterLabel' => $dateFilterLabel])
+
+    {{-- Desktop table --}}
+    <div class="crm-card crm-leads-table-wrap">
+        <table class="crm-table crm-leads-table">
             <thead>
             <tr><th>Code</th><th>Title</th><th>Contact</th><th>Company</th><th>Status</th><th>Follow-up</th><th>Assignee</th><th></th></tr>
             </thead>
@@ -51,19 +54,52 @@
                         @endif
                     </td>
                     <td>{{ $lead->assignee?->name ?? '—' }}</td>
-                    <td><a href="{{ route('crm.leads.show', $lead) }}">Open</a></td>
+                    <td><a class="crm-btn crm-btn-secondary crm-btn-sm" href="{{ route('crm.leads.show', $lead) }}">Open</a></td>
                 </tr>
             @empty
                 <tr><td colspan="8" class="crm-muted">No leads match your filters.</td></tr>
             @endforelse
             </tbody>
         </table>
-        @if ($leads->hasPages())
-            <div class="crm-actions" style="margin-top:12px;align-items:center;">
-                <button type="button" class="crm-btn crm-btn-secondary" wire:click="previousPage" @disabled($leads->onFirstPage())>Previous</button>
-                <span class="crm-muted">Page {{ $leads->currentPage() }} of {{ $leads->lastPage() }}</span>
-                <button type="button" class="crm-btn crm-btn-secondary" wire:click="nextPage" @disabled(!$leads->hasMorePages())>Next</button>
-            </div>
-        @endif
     </div>
+
+    {{-- Mobile cards --}}
+    <div class="crm-leads-cards">
+        @forelse($leads as $lead)
+            <article class="crm-card crm-lead-mobile-card @if($lead->followUpState()) crm-row-followup-{{ $lead->followUpState() }} @endif">
+                <div class="crm-lead-mobile-head">
+                    <div>
+                        <strong>{{ $lead->lead_code }}</strong>
+                        <div class="crm-muted">{{ $lead->title ?: 'Untitled lead' }}</div>
+                    </div>
+                    <span class="crm-badge">{{ $lead->status?->name }}</span>
+                </div>
+                <div class="crm-lead-mobile-body">
+                    <p><span class="crm-muted">Contact</span><br>{{ $lead->primaryContact?->fullName() ?: '—' }}</p>
+                    <p><span class="crm-muted">Email</span><br>{{ $lead->primaryContact?->email ?: '—' }}</p>
+                    <p><span class="crm-muted">Company</span><br>{{ $lead->company?->name ?? '—' }}</p>
+                    <p><span class="crm-muted">Assignee</span><br>{{ $lead->assignee?->name ?? '—' }}</p>
+                    <p>
+                        <span class="crm-muted">Follow-up</span><br>
+                        @if($lead->next_follow_up_at)
+                            <span class="crm-badge crm-badge-{{ $lead->followUpState() }}">{{ $lead->next_follow_up_at->format('d M, h:i A') }}</span>
+                        @else
+                            —
+                        @endif
+                    </p>
+                </div>
+                <a class="crm-btn" href="{{ route('crm.leads.show', $lead) }}" style="width:100%;text-align:center;">Open lead</a>
+            </article>
+        @empty
+            <div class="crm-card crm-muted">No leads match your filters.</div>
+        @endforelse
+    </div>
+
+    @if ($leads->hasPages())
+        <div class="crm-actions crm-pagination" style="margin-top:12px;align-items:center;">
+            <button type="button" class="crm-btn crm-btn-secondary" wire:click="previousPage" @disabled($leads->onFirstPage())>Previous</button>
+            <span class="crm-muted">Page {{ $leads->currentPage() }} of {{ $leads->lastPage() }}</span>
+            <button type="button" class="crm-btn crm-btn-secondary" wire:click="nextPage" @disabled(!$leads->hasMorePages())>Next</button>
+        </div>
+    @endif
 </div>

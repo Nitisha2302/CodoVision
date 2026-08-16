@@ -46,11 +46,16 @@
         'logo' => [
             '@type' => 'ImageObject',
             'url' => $logoUrl,
+            'caption' => 'CodoVision LLP logo',
         ],
         'image' => $logoUrl,
         'founder' => $founderRefs,
         'sameAs' => array_values($org['same_as'] ?? []),
     ];
+
+    if (!empty($org['disambiguating_description'])) {
+        $organization['disambiguatingDescription'] = $org['disambiguating_description'];
+    }
 
     if (!empty($org['telephone'])) {
         $organization['telephone'] = $org['telephone'];
@@ -65,6 +70,10 @@
             'postalCode' => $org['address']['postal'],
             'addressCountry' => $org['address']['country'],
         ];
+    }
+
+    if (!empty($org['area_served'])) {
+        $organization['areaServed'] = $org['area_served'];
     }
 
     $website = [

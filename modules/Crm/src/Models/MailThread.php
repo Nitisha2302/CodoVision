@@ -3,6 +3,7 @@
 namespace Codovision\Crm\Models;
 
 use Codovision\Crm\Support\MailboxAddress;
+use Codovision\Crm\Support\MailVisibility;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -63,6 +64,14 @@ class MailThread extends Model
             $q->where('assigned_to', $user->id)
                 ->orWhereHas('lead', fn ($lead) => $lead->visibleTo($user));
         });
+    }
+
+    /**
+     * Shared info@ mailbox only (hide contact folders / personal Gmail).
+     */
+    public function scopeInfoMailbox(Builder $query): Builder
+    {
+        return MailVisibility::scopeThreads($query);
     }
 
     public function refreshCounters(): void

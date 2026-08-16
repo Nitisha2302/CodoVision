@@ -25,6 +25,18 @@ class LeadShow extends Component
     public string $assignTo = '';
     public string $followUpAt = '';
     public string $followUpNote = '';
+    public bool $showAllEditHistory = false;
+    public bool $showAllTimeline = false;
+
+    public function toggleEditHistory(): void
+    {
+        $this->showAllEditHistory = !$this->showAllEditHistory;
+    }
+
+    public function toggleTimeline(): void
+    {
+        $this->showAllTimeline = !$this->showAllTimeline;
+    }
 
     public function mount(Lead|int $lead, ActivityLogger $logger): void
     {
@@ -205,6 +217,32 @@ class LeadShow extends Component
                 ->get();
         }
 
+        $editActivities = $this->lead->activities
+            ->where('type', 'updated')
+            ->values()
+            ->sortByDesc(fn ($a) => $a->created_at?->timestamp ?? 0)
+            ->values();
+
+        $timelineItems = collect();
+        foreach ($this->lead->activities as $activity) {
+            $timelineItems->push([
+                'sort' => $activity->created_at?->timestamp ?? 0,
+                'kind' => 'activity',
+                'item' => $activity,
+            ]);
+        }
+        foreach ($this->lead->statusHistory as $history) {
+            $timelineItems->push([
+                'sort' => $history->created_at?->timestamp ?? 0,
+                'kind' => 'status',
+                'item' => $history,
+            ]);
+        }
+        $timelineItems = $timelineItems->sortByDesc('sort')->values();
+
+        $editVisible = $this->showAllEditHistory ? $editActivities : $editActivities->take(2);
+        $timelineVisible = $this->showAllTimeline ? $timelineItems : $timelineItems->take(2);
+
         return view('crm::livewire.leads.lead-show', [
             'statuses' => LeadStatus::orderBy('sort_order')->get(),
             'users' => CrmUser::where('is_active', true)->orderBy('name')->get(),
@@ -215,6 +253,12 @@ class LeadShow extends Component
             'followUpState' => $this->lead->followUpState(),
             'unreadAlerts' => $unreadAlerts,
             'mailThreads' => $mailThreads,
+            'editActivities' => $editActivities,
+            'editVisible' => $editVisible,
+            'editHiddenCount' => max(0, $editActivities->count() - $editVisible->count()),
+            'timelineItems' => $timelineItems,
+            'timelineVisible' => $timelineVisible,
+            'timelineHiddenCount' => max(0, $timelineItems->count() - $timelineVisible->count()),
         ])->layout('crm::layouts.app');
     }
 }

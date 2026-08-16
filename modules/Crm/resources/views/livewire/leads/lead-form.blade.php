@@ -57,13 +57,30 @@
         <div class="crm-grid crm-grid-2">
             <div class="crm-field"><label class="crm-label">Title</label><input class="crm-input" wire:model="title"></div>
             <div class="crm-field"><label class="crm-label">Service interested</label><input class="crm-input" wire:model="service_interested"></div>
-            <div class="crm-field">
+            <div class="crm-field crm-source-field">
                 <label class="crm-label">Source</label>
-                <select class="crm-select" wire:model="lead_source_id">
-                    <option value="">Select</option>
-                    @foreach($sources as $source)<option value="{{ $source->id }}">{{ $source->name }}</option>@endforeach
+                <select class="crm-select" wire:model.live="lead_source_id">
+                    <option value="">Select source</option>
+                    @foreach($sources as $source)
+                        <option value="{{ $source->id }}">{{ $source->name }}</option>
+                    @endforeach
+                    <option value="__custom__">Other — type custom source</option>
                 </select>
-                @include('crm::partials.field-error', ['name' => 'lead_source_id'])
+                <input
+                    class="crm-input"
+                    style="margin-top:8px;"
+                    list="crm-lead-source-options"
+                    wire:model.live.debounce.300ms="lead_source_name"
+                    placeholder="Type source if not in list (e.g. Upwork, Freelance, Partner)"
+                    autocomplete="off"
+                >
+                <datalist id="crm-lead-source-options">
+                    @foreach($sources as $source)
+                        <option value="{{ $source->name }}"></option>
+                    @endforeach
+                </datalist>
+                <p class="crm-muted" style="margin:6px 0 0;font-size:12px;">Pick from the list or type a new source — it will be saved for next time.</p>
+                @include('crm::partials.field-error', ['name' => 'lead_source_name'])
             </div>
             <div class="crm-field"><label class="crm-label">Campaign</label><input class="crm-input" wire:model="campaign"></div>
             <div class="crm-field">

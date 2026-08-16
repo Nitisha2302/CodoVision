@@ -155,7 +155,7 @@ class LeadKanban extends Component
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->with(['leads' => function ($q) use ($user) {
-                $q->visibleTo($user)->with(['primaryContact', 'company', 'assignee'])->latest();
+                $q->visibleTo($user)->with(['primaryContact', 'company', 'assignee', 'source'])->latest();
             }])
             ->get();
 

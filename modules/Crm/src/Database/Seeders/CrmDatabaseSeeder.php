@@ -90,7 +90,7 @@ class CrmDatabaseSeeder extends Seeder
             LeadStatus::updateOrCreate(['slug' => $status['slug']], $status + ['is_active' => true]);
         }
 
-        foreach (['Website', 'Referral', 'LinkedIn', 'WhatsApp', 'Cold Call', 'Campaign', 'Other'] as $source) {
+        foreach (['Website', 'Referral', 'LinkedIn', 'WhatsApp', 'Cold Call', 'Campaign', 'Upwork', 'Freelance', 'Other'] as $source) {
             LeadSource::updateOrCreate(
                 ['slug' => Str::slug($source)],
                 ['name' => $source, 'is_active' => true]

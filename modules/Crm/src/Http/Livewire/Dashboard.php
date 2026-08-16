@@ -2,6 +2,7 @@
 
 namespace Codovision\Crm\Http\Livewire;
 
+use Codovision\Crm\Http\Livewire\Concerns\FiltersByDateRange;
 use Codovision\Crm\Http\Livewire\Concerns\InteractsWithCrmAuth;
 use Codovision\Crm\Models\Lead;
 use Codovision\Crm\Models\LeadChangeAlert;
@@ -15,9 +16,16 @@ use Livewire\Component;
 
 class Dashboard extends Component
 {
+    use FiltersByDateRange;
     use InteractsWithCrmAuth;
 
     public string $mailSyncNote = '';
+    public bool $showAllMailAlerts = false;
+
+    public function toggleMailAlerts(): void
+    {
+        $this->showAllMailAlerts = !$this->showAllMailAlerts;
+    }
 
     public function pollMailSync(MailSyncService $sync): void
     {
@@ -36,10 +44,10 @@ class Dashboard extends Component
         }
 
         $imported = (int) Cache::pull('crm-mail-sync-last-imported', 0);
-        $unread = MailAlert::query()->where('user_id', $user->id)->unread()->count();
+        $unread = MailAlert::query()->where('user_id', $user->id)->infoMailbox()->unread()->count();
 
         if ($imported > 0) {
-            $latest = MailAlert::query()->where('user_id', $user->id)->unread()->latest('id')->first();
+            $latest = MailAlert::query()->where('user_id', $user->id)->infoMailbox()->unread()->latest('id')->first();
             $this->mailSyncNote = $imported.' new email(s) just arrived.';
             $this->dispatch('crm-new-mail', count: $unread, added: $imported, summary: (string) ($latest?->summary ?? 'New email'));
         }
@@ -106,7 +114,7 @@ class Dashboard extends Component
     {
         $this->clearCrmFlash();
         $user = $this->crmUser();
-        $count = MailAlert::query()->where('user_id', $user->id)->unread()->update([
+        $count = MailAlert::query()->where('user_id', $user->id)->infoMailbox()->unread()->update([
             'is_read' => true,
             'read_at' => now(),
         ]);
@@ -128,11 +136,14 @@ class Dashboard extends Component
     public function render()
     {
         $user = $this->crmUser();
-        $leads = Lead::query()->visibleTo($user);
+        $leads = $this->applyDateRangeFilter(Lead::query()->visibleTo($user));
 
         $statusCounts = LeadStatus::query()
             ->orderBy('sort_order')
-            ->withCount(['leads' => fn ($q) => $q->visibleTo($user)])
+            ->withCount(['leads' => function ($q) use ($user) {
+                $q->visibleTo($user);
+                $this->applyDateRangeFilter($q);
+            }])
             ->get();
 
         $followUpsDue = (clone $leads)
@@ -161,14 +172,19 @@ class Dashboard extends Component
             $unreadCount = LeadChangeAlert::query()->unread()->count();
         }
 
-        $mailAlerts = MailAlert::query()
+        $mailAlertsQuery = MailAlert::query()
             ->where('user_id', $user->id)
+            ->infoMailbox()
             ->unread()
             ->with(['message.thread', 'lead'])
-            ->latest()
-            ->limit(15)
+            ->latest();
+
+        $mailUnreadCount = (clone $mailAlertsQuery)->count();
+        $mailAlerts = (clone $mailAlertsQuery)
+            ->when(!$this->showAllMailAlerts, fn ($q) => $q->limit(3))
+            ->when($this->showAllMailAlerts, fn ($q) => $q->limit(50))
             ->get();
-        $mailUnreadCount = MailAlert::query()->where('user_id', $user->id)->unread()->count();
+        $mailAlertsHiddenCount = max(0, $mailUnreadCount - $mailAlerts->count());
 
         $recentLeads = (clone $leads)
             ->with(['status', 'primaryContact', 'company', 'assignee'])
@@ -177,11 +193,15 @@ class Dashboard extends Component
             ->limit(12)
             ->get();
 
+        $myLeads = $this->applyDateRangeFilter(
+            Lead::query()->where('assigned_to', $user->id)
+        )->count();
+
         return view('crm::livewire.dashboard', [
             'user' => $user,
             'isAdmin' => $user->isAdmin(),
             'totalLeads' => (clone $leads)->count(),
-            'myLeads' => Lead::query()->where('assigned_to', $user->id)->count(),
+            'myLeads' => $myLeads,
             'pipelineValue' => (clone $leads)->sum('expected_value'),
             'dueFollowUpsCount' => (clone $leads)->followUpsDue()->count(),
             'statusCounts' => $statusCounts,
@@ -191,8 +211,11 @@ class Dashboard extends Component
             'unreadCount' => $unreadCount,
             'mailAlerts' => $mailAlerts,
             'mailUnreadCount' => $mailUnreadCount,
+            'mailAlertsHiddenCount' => $mailAlertsHiddenCount,
+            'showAllMailAlerts' => $this->showAllMailAlerts,
             'mailSyncNote' => $this->mailSyncNote,
             'recentLeads' => $recentLeads,
+            'dateFilterLabel' => $this->dateFilterLabel(),
         ])->layout('crm::layouts.app');
     }
 }

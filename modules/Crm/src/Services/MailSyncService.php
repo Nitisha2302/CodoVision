@@ -10,6 +10,7 @@ use Codovision\Crm\Models\MailAttachment;
 use Codovision\Crm\Models\MailMessage;
 use Codovision\Crm\Models\MailThread;
 use Codovision\Crm\Support\MailboxAddress;
+use Codovision\Crm\Support\MailVisibility;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -64,8 +65,9 @@ class MailSyncService
     }
 
     /**
-     * Fast path: only UNSEEN messages from Inbox/Spam/contact folders.
-     * Used by live UI polling so new mail appears without a full refresh.
+     * Fast path for live UI / schedule: pull UNSEEN + newest recent mail.
+     * GoDaddy often marks mail as read when opened in webmail — unseen-only
+     * would miss those replies, so we always also scan the newest messages.
      *
      * @return array{imported:int,skipped:int,errors:list<string>,ran:bool}
      */
@@ -92,17 +94,37 @@ class MailSyncService
 
             $client = $this->client();
             $client->connect();
+            $since = now()->subDays(2);
 
             foreach ($this->syncFolders($client) as $folder) {
                 $folderName = (string) ($folder->name ?: $folder->path ?: 'INBOX');
+                $collected = [];
+
                 try {
-                    $messages = $folder->query()->unseen()->setFetchOrderDesc()->limit($limit, 0)->get();
+                    foreach ($folder->query()->unseen()->setFetchOrderDesc()->limit($limit, 0)->get() as $message) {
+                        $collected[(string) $message->getUid()] = $message;
+                    }
                 } catch (Throwable $e) {
                     Log::warning("CRM unseen quick failed [{$folderName}]: ".$e->getMessage());
-                    continue;
                 }
 
-                foreach ($messages as $message) {
+                // Also pull newest mail (seen or unseen). Opening mail in GoDaddy
+                // marks it SEEN — those replies must still land in CRM.
+                try {
+                    $recentLimit = max($limit, str_contains(strtolower($folderName), '@') ? 15 : 20);
+                    try {
+                        $recent = $folder->query()->since($since)->setFetchOrderDesc()->limit($recentLimit, 0)->get();
+                    } catch (Throwable) {
+                        $recent = $folder->query()->all()->setFetchOrderDesc()->limit($recentLimit, 0)->get();
+                    }
+                    foreach ($recent as $message) {
+                        $collected[(string) $message->getUid()] = $message;
+                    }
+                } catch (Throwable $e) {
+                    Log::warning("CRM recent quick failed [{$folderName}]: ".$e->getMessage());
+                }
+
+                foreach ($collected as $message) {
                     try {
                         if ($this->ingestMessage($message, $folderName)) {
                             $imported++;
@@ -239,8 +261,8 @@ class MailSyncService
     }
 
     /**
-     * Priority: INBOX, Spam, and GoDaddy contact folders (name contains @).
-     * Skip Sent/Drafts/Trash and large non-contact folders like Archive.
+     * Priority: INBOX, Spam/Junk, then GoDaddy contact folders (client replies).
+     * Skip Sent/Drafts/Trash and hidden personal contact folders.
      *
      * @return list<Folder>
      */
@@ -249,6 +271,7 @@ class MailSyncService
         $skip = ['sent', 'drafts', 'trash', 'bin', 'scheduled', 'outbox', 'templates', 'archive'];
         $priority = [];
         $contact = [];
+        $allowContact = MailVisibility::syncContactFolders();
 
         try {
             foreach ($client->getFolders(false) as $folder) {
@@ -258,12 +281,17 @@ class MailSyncService
                     continue;
                 }
 
+                // Never sync personal/hidden contact folders.
+                if (MailVisibility::shouldSkipFolder((string) ($folder->name ?: $folder->path))) {
+                    continue;
+                }
+
                 $key = strtolower((string) ($folder->path ?: $folder->name));
                 if ($base === 'inbox' || $name === 'inbox') {
                     $priority[$key] = $folder;
                 } elseif (in_array($base, ['spam', 'junk'], true)) {
                     $priority[$key] = $folder;
-                } elseif (str_contains($name, '@')) {
+                } elseif ($allowContact && str_contains($name, '@')) {
                     $contact[$key] = $folder;
                 }
             }
@@ -281,7 +309,7 @@ class MailSyncService
             }
         }
 
-        // Contact folders first (GoDaddy conversation filing), then inbox/spam.
+        // Contact folders first (GoDaddy often files replies here), then inbox/spam.
         return array_values(array_merge($contact, $priority));
     }
 
@@ -308,6 +336,15 @@ class MailSyncService
 
     protected function ingestMessage(Message $message, string $folder): bool
     {
+        // Skip personal/hidden folders only (keep client reply folders on GoDaddy).
+        if (MailVisibility::shouldSkipFolder($folder)) {
+            return false;
+        }
+
+        if (MailVisibility::isContactFolder($folder) && !MailVisibility::syncContactFolders()) {
+            return false;
+        }
+
         $messageId = $this->cleanMessageId((string) ($message->getMessageId() ?: ''));
         $uid = (string) $message->getUid();
 
@@ -322,35 +359,58 @@ class MailSyncService
         $from = $message->getFrom()->first();
         $fromEmail = strtolower((string) ($from?->mail ?? ''));
         $fromName = (string) ($from?->personal ?? $fromEmail);
+
+        if (MailVisibility::isHiddenAddress($fromEmail)) {
+            return false;
+        }
         $to = $this->addresses($message->getTo());
         $cc = $this->addresses($message->getCc());
         $subject = (string) ($message->getSubject() ?: '(no subject)');
         $inReplyTo = $this->cleanMessageId((string) ($message->getInReplyTo() ?: ''));
+        $references = $this->extractReferences($message);
         $sentAt = optional($message->getDate()?->toDate())->setTimezone(config('app.timezone')) ?? now();
         $bodyText = (string) ($message->getTextBody() ?: '');
         $bodyHtml = (string) ($message->getHTMLBody() ?: '');
 
         // Skip copies of our own outbound mail that land back in folders.
         if (MailboxAddress::isOwn($fromEmail)) {
-            if ($messageId && MailMessage::where('message_id', $messageId)->exists()) {
-                return false;
-            }
-
-            $existingOutbound = MailMessage::query()
-                ->where('direction', 'outbound')
-                ->where('subject', $subject)
-                ->where('sent_at', '>=', now()->subDays(14))
-                ->latest('id')
-                ->first();
-            if ($existingOutbound) {
-                return false;
-            }
-
             return false;
         }
 
         $lead = $this->matchLead($fromEmail, $to);
-        $thread = $this->resolveThread($subject, $fromEmail, $inReplyTo, $lead);
+        $thread = $this->resolveThread($subject, $fromEmail, $inReplyTo, $lead, $references);
+
+        // Keep assignee/lead link so Sales Executive sees replies in mailbox + dashboard.
+        $dirty = false;
+        if ($lead) {
+            if (!$thread->lead_id) {
+                $thread->lead_id = $lead->id;
+                $dirty = true;
+            }
+            if (!$thread->assigned_to && $lead->assigned_to) {
+                $thread->assigned_to = $lead->assigned_to;
+                $dirty = true;
+            }
+        }
+        if (!$thread->assigned_to) {
+            $lastSender = MailMessage::query()
+                ->where('thread_id', $thread->id)
+                ->where('direction', 'outbound')
+                ->whereNotNull('user_id')
+                ->latest('id')
+                ->value('user_id');
+            if ($lastSender) {
+                $thread->assigned_to = (int) $lastSender;
+                $dirty = true;
+            }
+        }
+        if ($fromEmail && (!$thread->primary_email || MailboxAddress::isOwn($thread->primary_email))) {
+            $thread->primary_email = $fromEmail;
+            $dirty = true;
+        }
+        if ($dirty) {
+            $thread->save();
+        }
 
         $mail = MailMessage::create([
             'thread_id' => $thread->id,
@@ -375,7 +435,7 @@ class MailSyncService
 
         $this->storeAttachments($message, $mail);
         $thread->refreshCounters();
-        $mail->setRelation('thread', $thread);
+        $mail->setRelation('thread', $thread->fresh(['assignee']));
         $this->notifyRecipients($mail, $lead ?? $thread->lead);
 
         if ($lead) {
@@ -420,35 +480,66 @@ class MailSyncService
         $mail->forceFill(['has_attachments' => true])->save();
     }
 
-    protected function resolveThread(string $subject, string $fromEmail, ?string $inReplyTo, ?Lead $lead): MailThread
+    protected function resolveThread(string $subject, string $fromEmail, ?string $inReplyTo, ?Lead $lead, array $references = []): MailThread
     {
-        if ($inReplyTo) {
-            $parent = MailMessage::where('message_id', $inReplyTo)->first();
-            if ($parent) {
-                return $parent->thread;
+        $ids = array_values(array_filter(array_unique(array_merge(
+            $inReplyTo ? [$inReplyTo] : [],
+            $references
+        ))));
+
+        foreach ($ids as $refId) {
+            $parent = MailMessage::where('message_id', $refId)->first();
+            if ($parent?->thread) {
+                $thread = $parent->thread;
+                if ($lead && !$thread->lead_id) {
+                    $thread->lead_id = $lead->id;
+                    $thread->assigned_to = $thread->assigned_to ?: $lead->assigned_to;
+                    $thread->save();
+                }
+                if ($fromEmail && (!$thread->primary_email || MailboxAddress::isOwn($thread->primary_email))) {
+                    $thread->primary_email = $fromEmail;
+                    $thread->save();
+                }
+
+                return $thread;
             }
         }
 
         $normalized = $this->normalizeSubject($subject);
+
+        // Match existing CRM conversation with this client (outbound or prior inbound).
         $existing = MailThread::query()
             ->where('is_archived', false)
             ->where(function ($q) use ($normalized, $fromEmail) {
-                $q->where(function ($inner) use ($normalized, $fromEmail) {
-                    $inner->where('primary_email', $fromEmail)
-                        ->where('subject', 'like', '%'.$normalized.'%');
-                })->orWhere(function ($inner) use ($normalized, $fromEmail) {
-                    $inner->where('subject', 'like', '%'.$normalized.'%')
-                        ->where(function ($p) use ($fromEmail) {
-                            $p->where('primary_email', $fromEmail)
-                                ->orWhereHas('messages', function ($m) use ($fromEmail) {
-                                    $m->where('from_email', $fromEmail)
-                                        ->orWhereJsonContains('to_emails', $fromEmail);
-                                });
-                        });
+                $q->where('primary_email', $fromEmail)
+                    ->orWhereHas('messages', function ($m) use ($fromEmail) {
+                        $m->where('from_email', $fromEmail)
+                            ->orWhereJsonContains('to_emails', $fromEmail);
+                    });
+            })
+            ->when($normalized !== '', function ($q) use ($normalized) {
+                $q->where(function ($subjectQ) use ($normalized) {
+                    $subjectQ->where('subject', 'like', '%'.$normalized.'%')
+                        ->orWhereHas('messages', fn ($m) => $m->where('subject', 'like', '%'.$normalized.'%'));
                 });
             })
             ->latest('last_message_at')
             ->first();
+
+        // Fallback: same client email, most recent open thread (even if subject drifted).
+        if (!$existing && $fromEmail !== '') {
+            $existing = MailThread::query()
+                ->where('is_archived', false)
+                ->where(function ($q) use ($fromEmail) {
+                    $q->where('primary_email', $fromEmail)
+                        ->orWhereHas('messages', function ($m) use ($fromEmail) {
+                            $m->where('from_email', $fromEmail)
+                                ->orWhereJsonContains('to_emails', $fromEmail);
+                        });
+                })
+                ->latest('last_message_at')
+                ->first();
+        }
 
         if ($existing) {
             if ($lead && !$existing->lead_id) {
@@ -456,7 +547,7 @@ class MailSyncService
                 $existing->assigned_to = $lead->assigned_to;
                 $existing->save();
             }
-            if ($fromEmail && !$existing->primary_email) {
+            if ($fromEmail && (!$existing->primary_email || MailboxAddress::isOwn($existing->primary_email))) {
                 $existing->primary_email = $fromEmail;
                 $existing->save();
             }
@@ -476,6 +567,36 @@ class MailSyncService
         ]);
     }
 
+    /**
+     * @return list<string>
+     */
+    protected function extractReferences(Message $message): array
+    {
+        $raw = '';
+        try {
+            if (method_exists($message, 'getReferences')) {
+                $refs = $message->getReferences();
+                $raw = is_array($refs) ? implode(' ', $refs) : (string) $refs;
+            } elseif (method_exists($message, 'getHeader')) {
+                $raw = (string) ($message->getHeader()->get('references')?->toString() ?? '');
+            }
+        } catch (Throwable) {
+            $raw = '';
+        }
+
+        if ($raw === '') {
+            return [];
+        }
+
+        preg_match_all('/<([^>]+)>/', $raw, $matches);
+        $ids = $matches[1] ?? [];
+        if ($ids === []) {
+            $ids = preg_split('/\s+/', trim($raw)) ?: [];
+        }
+
+        return array_values(array_filter(array_map(fn ($id) => $this->cleanMessageId((string) $id), $ids)));
+    }
+
     protected function matchLead(string $fromEmail, array $toEmails): ?Lead
     {
         if ($fromEmail === '') {
@@ -490,6 +611,23 @@ class MailSyncService
             }
         }
 
+        // Also match by outbound thread already linked to a lead for this email.
+        $threadLead = MailThread::query()
+            ->whereNotNull('lead_id')
+            ->where(function ($q) use ($fromEmail) {
+                $q->where('primary_email', $fromEmail)
+                    ->orWhereHas('messages', function ($m) use ($fromEmail) {
+                        $m->where('direction', 'outbound')
+                            ->whereJsonContains('to_emails', $fromEmail);
+                    });
+            })
+            ->latest('last_message_at')
+            ->first();
+
+        if ($threadLead?->lead_id) {
+            return Lead::query()->find($threadLead->lead_id);
+        }
+
         return Lead::query()
             ->whereHas('primaryContact', fn ($q) => $q->whereRaw('LOWER(email) = ?', [$fromEmail]))
             ->latest('id')
@@ -498,6 +636,8 @@ class MailSyncService
 
     protected function notifyRecipients(MailMessage $mail, ?Lead $lead): void
     {
+        $mail->loadMissing('thread');
+
         $userIds = CrmUser::query()
             ->where('is_active', true)
             ->whereHas('roles', fn ($q) => $q->where('name', 'Admin')->where('guard_name', 'crm'))
@@ -512,6 +652,19 @@ class MailSyncService
             $userIds[] = (int) $mail->thread->assigned_to;
         }
 
+        // Fallback: notify the CRM user who last emailed this contact.
+        if ($userIds === [] || ($lead === null && !$mail->thread?->assigned_to)) {
+            $lastSender = MailMessage::query()
+                ->where('thread_id', $mail->thread_id)
+                ->where('direction', 'outbound')
+                ->whereNotNull('user_id')
+                ->latest('id')
+                ->value('user_id');
+            if ($lastSender) {
+                $userIds[] = (int) $lastSender;
+            }
+        }
+
         $userIds = array_values(array_unique(array_filter($userIds)));
         $summary = 'New mail from '.($mail->from_name ?: $mail->from_email).': '.Str::limit((string) $mail->subject, 80);
 
@@ -519,7 +672,7 @@ class MailSyncService
             MailAlert::updateOrCreate(
                 ['message_id' => $mail->id, 'user_id' => $userId],
                 [
-                    'lead_id' => $lead?->id,
+                    'lead_id' => $lead?->id ?? $mail->lead_id,
                     'summary' => $summary,
                     'is_read' => false,
                     'read_at' => null,

@@ -2,6 +2,7 @@
 
 namespace Codovision\Crm\Http\Livewire\Leads;
 
+use Codovision\Crm\Http\Livewire\Concerns\FiltersByDateRange;
 use Codovision\Crm\Http\Livewire\Concerns\InteractsWithCrmAuth;
 use Codovision\Crm\Models\Lead;
 use Codovision\Crm\Models\LeadSource;
@@ -15,6 +16,7 @@ use Throwable;
 
 class LeadIndex extends Component
 {
+    use FiltersByDateRange;
     use InteractsWithCrmAuth;
     use WithPagination;
 
@@ -23,7 +25,37 @@ class LeadIndex extends Component
     public string $source = '';
     public string $priority = '';
 
-    protected $queryString = ['search', 'status', 'source', 'priority'];
+    protected $queryString = [
+        'search',
+        'status',
+        'source',
+        'priority',
+        'datePreset' => ['except' => 'all'],
+        'dateFrom' => ['except' => ''],
+        'dateTo' => ['except' => ''],
+    ];
+
+    protected function filteredLeadsQuery($user)
+    {
+        return $this->applyDateRangeFilter(
+            Lead::query()
+                ->visibleTo($user)
+                ->with(['primaryContact', 'company', 'status', 'assignee'])
+                ->when($this->search, function ($q) {
+                    $term = '%' . $this->search . '%';
+                    $q->where(function ($inner) use ($term) {
+                        $inner->where('lead_code', 'like', $term)
+                            ->orWhere('title', 'like', $term)
+                            ->orWhere('notes', 'like', $term)
+                            ->orWhereHas('primaryContact', fn ($c) => $c->where('email', 'like', $term)->orWhere('phone', 'like', $term)->orWhere('first_name', 'like', $term)->orWhere('last_name', 'like', $term))
+                            ->orWhereHas('company', fn ($c) => $c->where('name', 'like', $term));
+                    });
+                })
+                ->when($this->status, fn ($q) => $q->whereHas('status', fn ($s) => $s->where('slug', $this->status)))
+                ->when($this->source, fn ($q) => $q->where('lead_source_id', $this->source))
+                ->when($this->priority, fn ($q) => $q->where('priority', $this->priority))
+        );
+    }
 
     public function updatingSearch(): void
     {
@@ -63,6 +95,9 @@ class LeadIndex extends Component
                     'status' => $this->status,
                     'source' => $this->source,
                     'priority' => $this->priority,
+                    'datePreset' => $this->datePreset,
+                    'dateFrom' => $this->dateFrom,
+                    'dateTo' => $this->dateTo,
                 ],
             ]);
 
@@ -70,24 +105,9 @@ class LeadIndex extends Component
 
             return response()->streamDownload(function () use ($user) {
                 $out = fopen('php://output', 'w');
-                fputcsv($out, ['Code', 'Title', 'Contact', 'Email', 'Phone', 'Company', 'Status', 'Priority', 'Value', 'Assignee']);
+                fputcsv($out, ['Code', 'Title', 'Contact', 'Email', 'Phone', 'Company', 'Status', 'Priority', 'Value', 'Assignee', 'Created']);
 
-                Lead::query()
-                    ->visibleTo($user)
-                    ->with(['primaryContact', 'company', 'status', 'assignee'])
-                    ->when($this->search, function ($q) {
-                        $term = '%' . $this->search . '%';
-                        $q->where(function ($inner) use ($term) {
-                            $inner->where('lead_code', 'like', $term)
-                                ->orWhere('title', 'like', $term)
-                                ->orWhere('notes', 'like', $term)
-                                ->orWhereHas('primaryContact', fn ($c) => $c->where('email', 'like', $term)->orWhere('phone', 'like', $term)->orWhere('first_name', 'like', $term))
-                                ->orWhereHas('company', fn ($c) => $c->where('name', 'like', $term));
-                        });
-                    })
-                    ->when($this->status, fn ($q) => $q->whereHas('status', fn ($s) => $s->where('slug', $this->status)))
-                    ->when($this->source, fn ($q) => $q->where('lead_source_id', $this->source))
-                    ->when($this->priority, fn ($q) => $q->where('priority', $this->priority))
+                $this->filteredLeadsQuery($user)
                     ->orderByDesc('id')
                     ->chunk(200, function ($chunk) use ($out) {
                         foreach ($chunk as $lead) {
@@ -102,6 +122,7 @@ class LeadIndex extends Component
                                 $lead->priority,
                                 $lead->expected_value,
                                 $lead->assignee?->name,
+                                optional($lead->created_at)->toDateString(),
                             ]);
                         }
                     });
@@ -122,30 +143,18 @@ class LeadIndex extends Component
     {
         $user = $this->crmUser();
 
-        $leads = Lead::query()
-            ->visibleTo($user)
-            ->with(['primaryContact', 'company', 'status', 'assignee'])
-            ->when($this->search, function ($q) {
-                $term = '%' . $this->search . '%';
-                $q->where(function ($inner) use ($term) {
-                    $inner->where('lead_code', 'like', $term)
-                        ->orWhere('title', 'like', $term)
-                        ->orWhere('notes', 'like', $term)
-                        ->orWhereHas('primaryContact', fn ($c) => $c->where('email', 'like', $term)->orWhere('phone', 'like', $term)->orWhere('first_name', 'like', $term)->orWhere('last_name', 'like', $term))
-                        ->orWhereHas('company', fn ($c) => $c->where('name', 'like', $term));
-                });
-            })
-            ->when($this->status, fn ($q) => $q->whereHas('status', fn ($s) => $s->where('slug', $this->status)))
-            ->when($this->source, fn ($q) => $q->where('lead_source_id', $this->source))
-            ->when($this->priority, fn ($q) => $q->where('priority', $this->priority))
+        $leads = $this->filteredLeadsQuery($user)
             ->latest()
             ->paginate(12);
+
+        LeadSource::ensureDefaults();
 
         return view('crm::livewire.leads.lead-index', [
             'leads' => $leads,
             'statuses' => LeadStatus::orderBy('sort_order')->get(),
             'sources' => LeadSource::where('is_active', true)->orderBy('name')->get(),
             'canExport' => $user->canExportLeads(),
+            'dateFilterLabel' => $this->dateFilterLabel(),
         ])->layout('crm::layouts.app');
     }
 }

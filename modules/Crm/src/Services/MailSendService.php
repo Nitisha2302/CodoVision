@@ -148,6 +148,22 @@ class MailSendService
 
         if ($threadId) {
             $thread = MailThread::findOrFail($threadId);
+            $dirty = false;
+            if (!$thread->assigned_to) {
+                $thread->assigned_to = $lead?->assigned_to ?: $actor->id;
+                $dirty = true;
+            }
+            if ($lead && !$thread->lead_id) {
+                $thread->lead_id = $lead->id;
+                $dirty = true;
+            }
+            if (!$thread->primary_email || MailboxAddress::isOwn($thread->primary_email)) {
+                $thread->primary_email = $toEmails[0] ?? $thread->primary_email;
+                $dirty = true;
+            }
+            if ($dirty) {
+                $thread->save();
+            }
         } else {
             $thread = MailThread::create([
                 'subject' => $subject,
@@ -162,11 +178,6 @@ class MailSendService
         $parent = $threadId
             ? ($thread->replyParentMessage())
             : $thread->messages()->latest('id')->first();
-
-        if ($threadId && (!$thread->primary_email || MailboxAddress::isOwn($thread->primary_email))) {
-            $thread->primary_email = $toEmails[0];
-            $thread->save();
-        }
 
         $message = MailMessage::create([
             'thread_id' => $thread->id,

@@ -139,7 +139,7 @@
                             <div class="crm-muted" style="font-size:12px;margin-top:4px;">
                                 {{ $latest?->from_name ?: $latest?->from_email ?: $thread->primary_email }}
                                 · {{ $thread->message_count }} message{{ $thread->message_count === 1 ? '' : 's' }}
-                                · {{ optional($thread->last_message_at)->format('d M Y, h:i A') }}
+                                · {{ optional($thread->last_message_at)?->timezone('Asia/Kolkata')->format('d M Y, h:i A') }}
                             </div>
                         </div>
                         <a class="crm-btn crm-btn-secondary" href="{{ route('crm.mailbox.thread', $thread) }}">Open & reply</a>
@@ -159,32 +159,38 @@
     @endif
 
     <div class="crm-card" style="margin-top:14px;">
-        <h3 style="margin-top:0;">Edit history</h3>
-        <p class="crm-muted" style="margin-top:0;">Who changed this lead and exactly what was edited.</p>
-        @php
-            $editActivities = $lead->activities->where('type', 'updated')->values();
-        @endphp
-        @forelse($editActivities as $activity)
+        <div class="crm-section-head">
+            <div>
+                <h3 style="margin:0;">Edit history</h3>
+                <p class="crm-muted" style="margin:4px 0 0;">Who changed this lead and what was edited.</p>
+            </div>
+            @if($editActivities->count() > 0)
+                <span class="crm-muted" style="font-size:12px;">{{ $editVisible->count() }} of {{ $editActivities->count() }}</span>
+            @endif
+        </div>
+        @forelse($editVisible as $activity)
             <div class="crm-edit-block">
                 <div class="crm-edit-head">
                     <strong>{{ $activity->user?->name ?? 'Unknown user' }}</strong>
                     <span class="crm-muted">edited · {{ $activity->created_at?->format('d M Y, h:i A') }}</span>
                 </div>
                 @if(!empty($activity->meta['changes']) && is_array($activity->meta['changes']))
-                    <table class="crm-table crm-edit-table">
-                        <thead>
-                        <tr><th>Field</th><th>From</th><th>To</th></tr>
-                        </thead>
-                        <tbody>
-                        @foreach($activity->meta['changes'] as $change)
-                            <tr>
-                                <td>{{ $change['label'] ?? $change['field'] ?? 'Field' }}</td>
-                                <td class="crm-muted">{{ $change['old'] ?? '—' }}</td>
-                                <td><strong>{{ $change['new'] ?? '—' }}</strong></td>
-                            </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
+                    <div class="crm-edit-table-wrap">
+                        <table class="crm-table crm-edit-table">
+                            <thead>
+                            <tr><th>Field</th><th>From</th><th>To</th></tr>
+                            </thead>
+                            <tbody>
+                            @foreach($activity->meta['changes'] as $change)
+                                <tr>
+                                    <td>{{ $change['label'] ?? $change['field'] ?? 'Field' }}</td>
+                                    <td class="crm-muted">{{ $change['old'] ?? '—' }}</td>
+                                    <td><strong>{{ $change['new'] ?? '—' }}</strong></td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 @else
                     <div class="crm-muted">{{ $activity->description ?: 'Lead updated' }}</div>
                 @endif
@@ -192,35 +198,60 @@
         @empty
             <p class="crm-muted">No edits logged yet.</p>
         @endforelse
+        @if($editActivities->count() > 2)
+            <div class="crm-see-more-row">
+                <button class="crm-btn crm-btn-secondary" type="button" wire:click="toggleEditHistory">
+                    {{ $showAllEditHistory ? 'Show less' : 'See more ('.$editHiddenCount.' more)' }}
+                </button>
+            </div>
+        @endif
     </div>
 
     <div class="crm-card" style="margin-top:14px;">
-        <h3 style="margin-top:0;">Timeline</h3>
+        <div class="crm-section-head">
+            <div>
+                <h3 style="margin:0;">Timeline</h3>
+                <p class="crm-muted" style="margin:4px 0 0;">Recent activity and status changes.</p>
+            </div>
+            @if($timelineItems->count() > 0)
+                <span class="crm-muted" style="font-size:12px;">{{ $timelineVisible->count() }} of {{ $timelineItems->count() }}</span>
+            @endif
+        </div>
         <ul class="crm-timeline">
-            @forelse($lead->activities as $activity)
-                <li>
-                    <strong>{{ $activity->title }}</strong>
-                    <span class="crm-muted">· {{ $activity->user?->name }} · {{ $activity->created_at?->format('Y-m-d H:i') }}</span>
-                    @if($activity->description)<div class="crm-muted">{{ $activity->description }}</div>@endif
-                    @if($activity->type === 'updated' && !empty($activity->meta['changes']))
-                        <div class="crm-muted" style="margin-top:4px;">
-                            Changed:
-                            {{ collect($activity->meta['changes'])->pluck('label')->filter()->take(6)->join(', ') }}
-                            @if(count($activity->meta['changes']) > 6)
-                                +{{ count($activity->meta['changes']) - 6 }} more
-                            @endif
-                        </div>
-                    @endif
-                </li>
+            @forelse($timelineVisible as $entry)
+                @if($entry['kind'] === 'activity')
+                    @php $activity = $entry['item']; @endphp
+                    <li>
+                        <strong>{{ $activity->title }}</strong>
+                        <span class="crm-muted">· {{ $activity->user?->name }} · {{ $activity->created_at?->format('d M Y, h:i') }}</span>
+                        @if($activity->description)<div class="crm-muted">{{ $activity->description }}</div>@endif
+                        @if($activity->type === 'updated' && !empty($activity->meta['changes']))
+                            <div class="crm-muted" style="margin-top:4px;">
+                                Changed:
+                                {{ collect($activity->meta['changes'])->pluck('label')->filter()->take(6)->join(', ') }}
+                                @if(count($activity->meta['changes']) > 6)
+                                    +{{ count($activity->meta['changes']) - 6 }} more
+                                @endif
+                            </div>
+                        @endif
+                    </li>
+                @else
+                    @php $history = $entry['item']; @endphp
+                    <li>
+                        <strong>Status → {{ $history->toStatus?->name }}</strong>
+                        <span class="crm-muted">· {{ $history->actor?->name }} · {{ $history->created_at?->format('d M Y, h:i') }}</span>
+                    </li>
+                @endif
             @empty
                 <li class="crm-muted">No activity yet.</li>
             @endforelse
-            @foreach($lead->statusHistory as $history)
-                <li>
-                    <strong>Status → {{ $history->toStatus?->name }}</strong>
-                    <span class="crm-muted">· {{ $history->actor?->name }} · {{ $history->created_at?->format('Y-m-d H:i') }}</span>
-                </li>
-            @endforeach
         </ul>
+        @if($timelineItems->count() > 2)
+            <div class="crm-see-more-row">
+                <button class="crm-btn crm-btn-secondary" type="button" wire:click="toggleTimeline">
+                    {{ $showAllTimeline ? 'Show less' : 'See more ('.$timelineHiddenCount.' more)' }}
+                </button>
+            </div>
+        @endif
     </div>
 </div>

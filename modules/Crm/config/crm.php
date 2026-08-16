@@ -44,5 +44,12 @@ return [
             'validate_cert' => env('CRM_IMAP_VALIDATE_CERT', true),
         ],
         'sync_limit' => (int) env('CRM_MAIL_SYNC_LIMIT', 40),
+        // Sync GoDaddy contact-named folders (client replies). Set false only if needed.
+        'sync_contact_folders' => filter_var(env('CRM_MAIL_SYNC_CONTACT_FOLDERS', true), FILTER_VALIDATE_BOOLEAN),
+        // Never show these personal addresses in CRM mailbox / alerts.
+        'hidden_addresses' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('CRM_MAIL_HIDDEN_ADDRESSES', 'raghavtomar661@gmail.com'))
+        ))),
     ],
 ];

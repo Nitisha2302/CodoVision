@@ -51,6 +51,7 @@ class LeadForm extends Component
     public string $competitor = '';
     public string $notes = '';
     public string $lead_source_id = '';
+    public string $lead_source_name = '';
     public string $assigned_to = '';
     public string $team_id = '';
     public string $status_slug = 'new';
@@ -86,7 +87,8 @@ class LeadForm extends Component
             'decision_maker' => ['nullable', 'string', 'max:180'],
             'competitor' => ['nullable', 'string', 'max:180'],
             'notes' => ['nullable', 'string', 'max:5000'],
-            'lead_source_id' => ['nullable', 'exists:crm_lead_sources,id'],
+            'lead_source_id' => ['nullable'],
+            'lead_source_name' => ['nullable', 'string', 'max:120'],
             'assigned_to' => ['nullable', 'exists:crm_users,id'],
             'team_id' => ['nullable', 'exists:crm_teams,id'],
             'status_slug' => ['required', 'exists:crm_lead_statuses,slug'],
@@ -112,7 +114,7 @@ class LeadForm extends Component
             'expected_value.numeric' => 'Expected value must be a number.',
             'currency.size' => 'Currency must be a 3-letter code (e.g. USD).',
             'expected_closing_date.date' => 'Enter a valid closing date.',
-            'lead_source_id.exists' => 'Selected source is invalid.',
+            'lead_source_name.max' => 'Source may not exceed 120 characters.',
             'assigned_to.exists' => 'Selected assignee is invalid.',
             'team_id.exists' => 'Selected team is invalid.',
             'status_slug.required' => 'Status is required.',
@@ -128,7 +130,7 @@ class LeadForm extends Component
 
         if ($lead) {
             $leadId = $lead instanceof Lead ? $lead->id : $lead;
-            $model = Lead::query()->visibleTo($user)->with(['primaryContact', 'company', 'status'])->findOrFail($leadId);
+            $model = Lead::query()->visibleTo($user)->with(['primaryContact', 'company', 'status', 'source'])->findOrFail($leadId);
             $this->crmAuthorize('update', $model);
             $this->leadId = $model->id;
             $this->fillFromLead($model);
@@ -168,11 +170,60 @@ class LeadForm extends Component
         $this->competitor = $lead->competitor ?? '';
         $this->notes = $lead->notes ?? '';
         $this->lead_source_id = (string) ($lead->lead_source_id ?? '');
+        $this->lead_source_name = $lead->source?->name ?? '';
         $this->assigned_to = (string) ($lead->assigned_to ?? '');
         $this->team_id = (string) ($lead->team_id ?? '');
         $this->status_slug = $lead->status?->slug ?? 'new';
         $this->next_follow_up_at = optional($lead->next_follow_up_at)->format('Y-m-d\TH:i') ?? '';
         $this->follow_up_note = $lead->follow_up_note ?? '';
+    }
+
+    public function updatedLeadSourceId(?string $value): void
+    {
+        if ($value === '' || $value === null) {
+            $this->lead_source_name = '';
+
+            return;
+        }
+
+        if ($value === '__custom__') {
+            return;
+        }
+
+        $source = LeadSource::query()->find($value);
+        if ($source) {
+            $this->lead_source_name = $source->name;
+        }
+    }
+
+    public function updatedLeadSourceName(?string $value): void
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            $this->lead_source_id = '';
+
+            return;
+        }
+
+        $match = LeadSource::query()
+            ->where('is_active', true)
+            ->whereRaw('LOWER(name) = ?', [mb_strtolower($value)])
+            ->first();
+
+        $this->lead_source_id = $match ? (string) $match->id : '__custom__';
+    }
+
+    protected function resolveLeadSourceId(): ?int
+    {
+        if (filled($this->lead_source_name)) {
+            return LeadSource::findOrCreateByName($this->lead_source_name)?->id;
+        }
+
+        if (filled($this->lead_source_id) && $this->lead_source_id !== '__custom__' && ctype_digit((string) $this->lead_source_id)) {
+            return (int) $this->lead_source_id;
+        }
+
+        return null;
     }
 
     public function save(LeadService $leadService, ActivityLogger $logger, LeadChangeTracker $tracker)
@@ -183,6 +234,7 @@ class LeadForm extends Component
         try {
             $user = $this->crmUser();
             $data = $this->validate();
+            $resolvedSourceId = $this->resolveLeadSourceId();
 
             if (blank($this->contact_email) && blank($this->contact_phone)) {
                 throw ValidationException::withMessages([
@@ -194,7 +246,7 @@ class LeadForm extends Component
             $payload = array_merge($data, [
                 'is_decision_maker' => $this->is_decision_maker,
                 'force_create' => $this->force_create,
-                'lead_source_id' => filled($this->lead_source_id) ? (int) $this->lead_source_id : null,
+                'lead_source_id' => $resolvedSourceId,
                 'assigned_to' => filled($this->assigned_to) ? (int) $this->assigned_to : null,
                 'team_id' => filled($this->team_id) ? (int) $this->team_id : null,
                 'budget' => filled($this->budget) ? $this->budget : null,
@@ -328,6 +380,8 @@ class LeadForm extends Component
 
     public function render()
     {
+        LeadSource::ensureDefaults();
+
         return view('crm::livewire.leads.lead-form', [
             'sources' => LeadSource::where('is_active', true)->orderBy('name')->get(),
             'statuses' => LeadStatus::orderBy('sort_order')->get(),

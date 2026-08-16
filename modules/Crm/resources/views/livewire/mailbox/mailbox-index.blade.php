@@ -5,12 +5,13 @@
         <div>
             <h2 style="margin:0;">Mailbox @if($unreadMail > 0)<span class="crm-badge crm-badge-today">{{ $unreadMail }} new</span>@endif</h2>
             <p class="crm-muted" style="margin:4px 0 0;">
-                Shared CRM inbox ·
+                Shared info@ inbox ·
                 @if($imapReady)
                     <span class="crm-mail-status ok">IMAP connected</span>
                 @else
                     <span class="crm-mail-status bad">IMAP not configured</span>
                 @endif
+                <span class="crm-muted"> · client replies synced</span>
             </p>
         </div>
         <div class="crm-actions">
@@ -80,7 +81,7 @@
                                     <span class="crm-badge">{{ $thread->lead->lead_code }}</span>
                                 @endif
                             </div>
-                            <div class="crm-mail-date">{{ optional($thread->last_message_at)->format('d M, h:i A') }}</div>
+                            <div class="crm-mail-date">{{ optional($thread->last_message_at)?->timezone('Asia/Kolkata')->format('d M, h:i A') }}</div>
                         </a>
                         <div class="crm-mail-row-actions">
                             @if($unread)

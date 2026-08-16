@@ -1,47 +1,83 @@
-<div>
+<div class="crm-pipeline-page">
     @include('crm::partials.flash')
 
     <div class="crm-topbar">
         <div>
             <h2 style="margin:0;">Pipeline</h2>
-            <p class="crm-muted" style="margin:4px 0 0;">Move leads across stages. Transitions are logged.</p>
+            <p class="crm-muted" style="margin:4px 0 0;">Drag stages on mobile · move leads between columns on web.</p>
         </div>
-        <a class="crm-btn crm-btn-secondary" href="{{ route('crm.leads.index') }}">List view</a>
+        <div class="crm-actions">
+            <a class="crm-btn" href="{{ route('crm.leads.create') }}">+ New Lead</a>
+            <a class="crm-btn crm-btn-secondary" href="{{ route('crm.leads.index') }}">List view</a>
+        </div>
     </div>
 
-    <div class="crm-kanban">
+    <div class="crm-pipeline-summary">
         @foreach($statuses as $status)
-            <div class="crm-col">
-                <h4>
-                    <span>{{ $status->name }}</span>
-                    <span class="crm-muted">{{ $status->leads->count() }}</span>
-                </h4>
-                @forelse($status->leads as $lead)
-                    <div class="crm-lead-card">
-                        <h5><a href="{{ route('crm.leads.show', $lead) }}">{{ $lead->lead_code }}</a></h5>
-                        <p>{{ $lead->primaryContact?->fullName() }}</p>
-                        <p>{{ $lead->company?->name }}</p>
-                        <p style="margin-top:6px;">{{ $lead->assignee?->name ?? 'Unassigned' }}</p>
-                        <div class="crm-field" style="margin-top:8px;margin-bottom:0;">
-                            <select class="crm-select" wire:change="moveLead({{ $lead->id }}, $event.target.value)">
-                                <option value="">Move to…</option>
-                                @foreach($statuses as $option)
-                                    @if($option->id !== $status->id)
-                                        <option value="{{ $option->slug }}">{{ $option->name }}</option>
-                                    @endif
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                @empty
-                    <p class="crm-muted" style="font-size:12px;margin:8px 0;">No leads</p>
-                @endforelse
+            <div class="crm-pipeline-chip" style="--stage: {{ $status->color ?: '#6366f1' }}">
+                <span class="crm-pipeline-chip-dot"></span>
+                <span>{{ $status->name }}</span>
+                <strong>{{ $status->leads->count() }}</strong>
             </div>
         @endforeach
     </div>
 
+    <div class="crm-kanban-hint crm-muted">Swipe sideways to browse stages</div>
+
+    <div class="crm-kanban">
+        @foreach($statuses as $status)
+            <section class="crm-col" style="--stage: {{ $status->color ?: '#6366f1' }}">
+                <header class="crm-col-head">
+                    <div>
+                        <h4>{{ $status->name }}</h4>
+                        <p class="crm-muted">{{ $status->leads->count() }} lead{{ $status->leads->count() === 1 ? '' : 's' }}</p>
+                    </div>
+                    <span class="crm-col-count">{{ $status->leads->count() }}</span>
+                </header>
+
+                <div class="crm-col-body">
+                    @forelse($status->leads as $lead)
+                        <article class="crm-lead-card">
+                            <div class="crm-lead-card-top">
+                                <a class="crm-lead-code" href="{{ route('crm.leads.show', $lead) }}">{{ $lead->lead_code }}</a>
+                                <span class="crm-badge crm-badge-{{ $lead->priority === 'urgent' ? 'overdue' : ($lead->priority === 'high' ? 'today' : 'scheduled') }}">{{ ucfirst($lead->priority ?: 'medium') }}</span>
+                            </div>
+                            <h5 class="crm-lead-card-title">
+                                <a href="{{ route('crm.leads.show', $lead) }}">{{ $lead->title ?: ($lead->primaryContact?->fullName() ?: 'Untitled lead') }}</a>
+                            </h5>
+                            <div class="crm-lead-card-meta">
+                                <div><span class="crm-muted">Contact</span> {{ $lead->primaryContact?->fullName() ?: '—' }}</div>
+                                <div><span class="crm-muted">Company</span> {{ $lead->company?->name ?: '—' }}</div>
+                                <div><span class="crm-muted">Owner</span> {{ $lead->assignee?->name ?? 'Unassigned' }}</div>
+                                @if($lead->source)
+                                    <div><span class="crm-muted">Source</span> {{ $lead->source->name }}</div>
+                                @endif
+                                @if($lead->expected_value)
+                                    <div><span class="crm-muted">Value</span> {{ $lead->currency ?: 'USD' }} {{ number_format((float) $lead->expected_value, 0) }}</div>
+                                @endif
+                            </div>
+                            <div class="crm-lead-card-actions">
+                                <a class="crm-btn crm-btn-secondary crm-btn-sm" href="{{ route('crm.leads.show', $lead) }}">Open</a>
+                                <select class="crm-select crm-lead-move" wire:change="moveLead({{ $lead->id }}, $event.target.value)" aria-label="Move lead">
+                                    <option value="">Move…</option>
+                                    @foreach($statuses as $option)
+                                        @if($option->id !== $status->id)
+                                            <option value="{{ $option->slug }}">{{ $option->name }}</option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            </div>
+                        </article>
+                    @empty
+                        <div class="crm-col-empty">No leads in this stage</div>
+                    @endforelse
+                </div>
+            </section>
+        @endforeach
+    </div>
+
     @if($showTransitionModal)
-        <div class="crm-card" style="margin-top:16px;border-color:rgba(99,102,241,.4);">
+        <div class="crm-card crm-transition-modal">
             <h3 style="margin-top:0;">Confirm stage change → {{ strtoupper($targetStatusSlug) }}</h3>
             <form wire:submit="confirmTransition">
                 @if($targetStatusSlug === 'lost')

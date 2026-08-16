@@ -1,21 +1,31 @@
 @extends('layouts.app')
 
 @section('title', 'About CodoVision LLP | Raghav Tomar & Nitisha Goyal')
-@section('meta_description', 'Learn about CodoVision LLP, a software development company founded by Raghav Tomar and Nitisha Goyal. We build mobile apps, web platforms, AI solutions, and custom software.')
-@section('meta_keywords', 'About CodoVision LLP, CodoVision LLP, Raghav Tomar, Nitisha Goyal, Raghav Tomar CodoVision, Nitisha Goyal CodoVision, software development company')
+@section('meta_description', 'About CodoVision LLP (codovision.tech) in Mohali, Punjab — founded by Raghav Tomar and Nitisha Goyal. Official software development company, not affiliated with similarly named firms in other cities.')
+@section('meta_keywords', 'About CodoVision LLP, CodoVision LLP Mohali, Raghav Tomar CodoVision, Nitisha Goyal CodoVision, codovision.tech, software development company Mohali')
 @section('meta_canonical', url('/about'))
 @section('og_title', 'About CodoVision LLP | Founders Raghav Tomar & Nitisha Goyal')
-@section('og_description', 'CodoVision LLP is led by founders Raghav Tomar and Nitisha Goyal, delivering reliable software products for startups and businesses.')
+@section('og_description', 'CodoVision LLP is a Mohali software company founded by Raghav Tomar and Nitisha Goyal. Official site: https://codovision.tech/')
 @section('og_url', url('/about'))
 @section('og_image', url('/images/logo.png'))
-@section('twitter_title', 'About CodoVision LLP')
-@section('twitter_description', 'Meet CodoVision LLP and founders Raghav Tomar and Nitisha Goyal.')
+@section('twitter_title', 'About CodoVision LLP | Raghav Tomar & Nitisha Goyal')
+@section('twitter_description', 'Meet CodoVision LLP founders Raghav Tomar and Nitisha Goyal — Mohali, Punjab. https://codovision.tech/')
 @section('twitter_image', url('/images/logo.png'))
 @section('head_extras')
 <x-seo-breadcrumbs :items="[
     ['name' => 'Home', 'url' => url('/')],
     ['name' => 'About', 'url' => url('/about')],
 ]" />
+<script type="application/ld+json">
+{!! json_encode([
+    '@context' => 'https://schema.org',
+    '@type' => 'AboutPage',
+    'name' => 'About CodoVision LLP',
+    'url' => url('/about'),
+    'about' => ['@id' => 'https://codovision.tech/#organization'],
+    'mainEntity' => ['@id' => 'https://codovision.tech/#organization'],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
+</script>
 @endsection
 
 @section('content')

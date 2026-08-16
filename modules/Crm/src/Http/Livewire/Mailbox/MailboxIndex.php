@@ -63,16 +63,16 @@ class MailboxIndex extends Component
 
         // Refresh list from DB only; IMAP sync runs in queue:work (avoids timeout screen).
         $lastQueued = \Illuminate\Support\Facades\Cache::get('crm-mail-sync-queued-at');
-        if (!$lastQueued || \Carbon\Carbon::parse($lastQueued)->addSeconds(15)->isPast()) {
+        if (!$lastQueued || \Carbon\Carbon::parse($lastQueued)->addSeconds(45)->isPast()) {
             \Illuminate\Support\Facades\Cache::put('crm-mail-sync-queued-at', now()->toIso8601String(), now()->addMinutes(5));
-            SyncInboxJob::dispatch(25);
+            SyncInboxJob::dispatch(40);
         }
 
         $imported = (int) \Illuminate\Support\Facades\Cache::pull('crm-mail-sync-last-imported', 0);
         if ($imported > 0) {
             $user = $this->crmUser();
-            $unread = MailAlert::query()->where('user_id', $user->id)->unread()->count();
-            $latest = MailAlert::query()->where('user_id', $user->id)->unread()->latest('id')->first();
+            $unread = MailAlert::query()->where('user_id', $user->id)->infoMailbox()->unread()->count();
+            $latest = MailAlert::query()->where('user_id', $user->id)->infoMailbox()->unread()->latest('id')->first();
             $this->crmFlashSuccess($imported.' new email(s) synced.');
             $this->dispatch('crm-new-mail', count: $unread, added: $imported, summary: (string) ($latest?->summary ?? 'New email'));
         }
@@ -248,7 +248,7 @@ class MailboxIndex extends Component
     public function render(MailSyncService $sync)
     {
         $user = $this->crmUser();
-        $base = MailThread::query()->visibleTo($user);
+        $base = MailThread::query()->visibleTo($user)->infoMailbox();
 
         $threads = (clone $base)
             ->with(['lead.primaryContact', 'assignee', 'latestMessage'])
@@ -275,7 +275,7 @@ class MailboxIndex extends Component
             'archived' => (clone $base)->where('is_archived', true)->count(),
         ];
 
-        $unreadMail = MailAlert::query()->where('user_id', $user->id)->unread()->count();
+        $unreadMail = MailAlert::query()->where('user_id', $user->id)->infoMailbox()->unread()->count();
 
         return view('crm::livewire.mailbox.mailbox-index', [
             'threads' => $threads,

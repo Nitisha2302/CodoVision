@@ -62,6 +62,6 @@
         </div>
     </div>
     <div class="footer-bottom">
-        <p>© 2026 CodoVision. All rights reserved.</p>
+        <p>© 2026 CodoVision LLP. All rights reserved.</p>
     </div>
 </footer>

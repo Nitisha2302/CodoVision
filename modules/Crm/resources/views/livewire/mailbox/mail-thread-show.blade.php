@@ -55,7 +55,7 @@
                         </div>
                     </div>
                     <div class="crm-mail-meta-right">
-                        <span class="crm-muted">{{ $message->sent_at?->format('d M Y, h:i A') }}</span>
+                        <span class="crm-muted">{{ $message->sent_at?->timezone('Asia/Kolkata')->format('d M Y, h:i A') }}</span>
                         @if($message->direction === 'outbound' && $message->send_status)
                             <span class="crm-badge">{{ ucfirst($message->send_status) }}</span>
                         @endif

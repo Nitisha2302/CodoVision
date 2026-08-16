@@ -24,7 +24,7 @@ class MailAlertBell extends Component
             return;
         }
 
-        $this->unread = MailAlert::query()->where('user_id', $user->id)->unread()->count();
+        $this->unread = MailAlert::query()->where('user_id', $user->id)->infoMailbox()->unread()->count();
         $this->lastNotified = $this->unread;
 
         if ($sync->configured()) {
@@ -44,10 +44,11 @@ class MailAlertBell extends Component
             $this->queueSync();
         }
 
-        $this->unread = MailAlert::query()->where('user_id', $user->id)->unread()->count();
+        $this->unread = MailAlert::query()->where('user_id', $user->id)->infoMailbox()->unread()->count();
 
         $latest = MailAlert::query()
             ->where('user_id', $user->id)
+            ->infoMailbox()
             ->unread()
             ->latest('id')
             ->first();

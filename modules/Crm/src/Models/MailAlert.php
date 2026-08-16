@@ -2,6 +2,7 @@
 
 namespace Codovision\Crm\Models;
 
+use Codovision\Crm\Support\MailVisibility;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -45,6 +46,14 @@ class MailAlert extends Model
     public function scopeUnread(Builder $query): Builder
     {
         return $query->where('is_read', false);
+    }
+
+    /**
+     * Alerts for shared info@ inbox mail only.
+     */
+    public function scopeInfoMailbox(Builder $query): Builder
+    {
+        return MailVisibility::scopeAlerts($query);
     }
 
     public function markRead(): void
